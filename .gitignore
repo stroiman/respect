@@ -19,6 +19,7 @@
 *.cmj
 *.bak
 lib/bs
+lib/js
 *.mlast
 *.mliast
 .vscode
