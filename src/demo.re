@@ -1,37 +1,30 @@
-type testFunc = unit => unit;
-
-type test = {
-  name: string,
-  func: testFunc
-};
-
-type setup = Setup of testFunc;
-
-type testContext = {
-  name: string,
-  children: list testContext,
-  setups: list setup,
-  tests: list test
-};
-
-let it name test => { name: name, func: test };
+open Dsl;
 
 let (<|) fn x => fn x;
 
-let x = it "works" <| fun () => {
-  Js.log "Function!!";
-};
+register (describe "Specs" [
+  it "works" <| fun () => {
+    Js.log "Function 1";
+  },
+  it "works too" <| fun () => {
+    Js.log "Function 2";
+  },
+]);
 
-let globalTests = ref [];
+register (
+describe "More specs" [
+  it "works more" <| fun () => {
+    Js.log "Function 3";
+  },
 
-let addTest (t : test) => {
-  globalTests := [t, ...!globalTests];
-};
-
-addTest x;
+  it "Works event more" <| fun () => {
+    Js.log "Function 4";
+  },
+]);
 
 let () = {
-  !globalTests |> List.iter (fun (x:test) => {
+  Js.log "*  Starting test run";
+  (!rootContext).children |> List.map (x => x.tests) |> List.flatten |> List.iter (fun (x:test) => {
     Js.log ("Running " ^ x.name);
     x.func();
   });
