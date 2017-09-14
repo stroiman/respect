@@ -24,3 +24,4 @@ lib/js
 *.mliast
 .vscode
 .merlin
+node_modules
