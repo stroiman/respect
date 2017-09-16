@@ -8,11 +8,8 @@ exception TestFailed string;
 
 register (
   describe
-    "Specs"
-    [
-      it "works a lot" (fun () => Js.log "Function 1"),
-      it "works too" (fun () => Js.log "Function 2")
-    ]
+    "TestContext"
+    [describe "Adding data to context" [it "Makes the data retrievable" (fun _ => ())]]
 );
 
 register (
