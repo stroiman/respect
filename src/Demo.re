@@ -17,9 +17,9 @@ register (
             "Makes the data retrievable"
             (
               fun _ => {
-                let x = ExecutionContext.create ();
-                x |> ExecutionContext.add "x" 42;
-                x |> ExecutionContext.get "x" |> should (equal 42)
+                let x = TestContext.create ();
+                x |> TestContext.add "x" 42;
+                x |> TestContext.get "x" |> should (equal 42)
               }
             )
         ]
