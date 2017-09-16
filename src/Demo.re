@@ -9,7 +9,21 @@ exception TestFailed string;
 register (
   describe
     "TestContext"
-    [describe "Adding data to context" [it "Makes the data retrievable" (fun _ => ())]]
+    [
+      describe
+        "Adding data to context"
+        [
+          it
+            "Makes the data retrievable"
+            (
+              fun _ => {
+                let x = ExecutionContext.create ();
+                x |> ExecutionContext.add "x" 42;
+                x |> ExecutionContext.get "x" |> should (equal 42)
+              }
+            )
+        ]
+    ]
 );
 
 register (
