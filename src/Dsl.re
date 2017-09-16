@@ -1,6 +1,6 @@
 type testFunc = unit => unit;
 
-type test = {
+type example = {
   name: string,
   func: testFunc
 };
@@ -8,45 +8,45 @@ type test = {
 type setup =
   | Setup testFunc;
 
-type testContext = {
+type exampleGroup = {
   name: string,
-  children: list testContext,
+  children: list exampleGroup,
   setups: list setup,
-  tests: list test
+  examples: list example
 };
 
 type operation =
   | AddContextOperation string (list operation)
-  | AddTestOperation string testFunc;
+  | AddExampleOperation string testFunc;
 
-let it name test => AddTestOperation name test;
+let it name ex => AddExampleOperation name ex;
 
 let describe name ops => AddContextOperation name ops;
 
-module TestContext = {
-  let empty = {name: "", children: [], setups: [], tests: []};
+module ExampleGroup = {
+  let empty = {name: "", children: [], setups: [], examples: []};
   let addChild child root => {...root, children: root.children @ [child]};
 };
 
 let rec applyOperation operation context =>
   switch operation {
-  | AddTestOperation name func => {...context, tests: [{name, func}, ...context.tests]}
+  | AddExampleOperation name func => {...context, examples: [{name, func}, ...context.examples]}
   | AddContextOperation name ops =>
-    let initial = {...TestContext.empty, name};
+    let initial = {...ExampleGroup.empty, name};
     let newChild = List.fold_left (fun ctx op => applyOperation op ctx) initial ops;
     let newChild' = {
       ...newChild,
       children: newChild.children |> List.rev,
-      tests: newChild.tests |> List.rev
+      examples: newChild.examples |> List.rev
     };
     {...context, children: [newChild', ...context.children]}
   };
 
-let rootContext = ref TestContext.empty;
+let rootContext = ref ExampleGroup.empty;
 
 let register op => rootContext := !rootContext |> applyOperation op;
 
 let rec run ctx => {
-  ctx.tests |> List.iter (fun test => test.func ());
+  ctx.examples |> List.iter (fun ex => ex.func ());
   ctx.children |> List.iter (fun x => run x)
 };

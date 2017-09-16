@@ -2,7 +2,7 @@ open Dsl;
 
 open Matcher;
 
-let exec x => TestContext.empty |> applyOperation x |> run;
+let exec x => ExampleGroup.empty |> applyOperation x |> run;
 
 exception TestFailed string;
 
