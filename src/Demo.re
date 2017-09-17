@@ -33,14 +33,14 @@ register (
       it
         "works more"
         (
-          fun () => {
+          fun _ => {
             let lines = ref [];
-            it "has a test" (fun () => lines := ["x", ...!lines]) |> exec;
+            it "has a test" (fun _ => lines := ["x", ...!lines]) |> exec;
             !lines |> should (equal ["x"])
           }
         ),
-      it "Works event more" (fun () => Js.log "Function 4"),
-      describe "Child specs" [it "Has child spec" (fun () => Js.log "Child spec")]
+      it "Works event more" (fun _ => Js.log "Function 4"),
+      describe "Child specs" [it "Has child spec" (fun _ => Js.log "Child spec")]
     ]
 );
 

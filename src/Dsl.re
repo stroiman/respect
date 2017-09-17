@@ -1,4 +1,4 @@
-type testFunc = unit => unit;
+type testFunc = TestContext.t => unit;
 
 type example = {
   name: string,
@@ -46,7 +46,9 @@ let rootContext = ref ExampleGroup.empty;
 
 let register op => rootContext := !rootContext |> applyOperation op;
 
+let runExample ex => TestContext.create () |> ex.func;
+
 let rec run ctx => {
-  ctx.examples |> List.iter (fun ex => ex.func ());
+  ctx.examples |> List.iter runExample;
   ctx.children |> List.iter (fun x => run x)
 };
