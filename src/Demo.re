@@ -1,5 +1,7 @@
 open Dsl;
 
+open TestHelpers;
+
 open Matcher;
 
 let exec x => ExampleGroup.empty |> applyOperation x |> run;
@@ -28,19 +30,18 @@ register (
 
 register (
   describe
-    "More specs"
+    "Runner"
     [
       it
-        "works more"
+        "executes the example code"
         (
           fun _ => {
             let lines = ref [];
-            it "has a test" (fun _ => lines := ["x", ...!lines]) |> exec;
+            let append line => lines := [line, ...!lines];
+            anExampleGroup |> withExampleCode (fun _ => append "x") |> run;
             !lines |> should (equal ["x"])
           }
-        ),
-      it "Works event more" (fun _ => Js.log "Function 4"),
-      describe "Child specs" [it "Has child spec" (fun _ => Js.log "Child spec")]
+        )
     ]
 );
 

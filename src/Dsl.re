@@ -26,6 +26,7 @@ let describe name ops => AddContextOperation name ops;
 module ExampleGroup = {
   let empty = {name: "", children: [], setups: [], examples: []};
   let addChild child root => {...root, children: root.children @ [child]};
+  let addExample ex grp => {...grp, examples: grp.examples @ [ex]};
 };
 
 let rec applyOperation operation context =>
