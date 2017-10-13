@@ -47,7 +47,10 @@ let rootContext = ref ExampleGroup.empty;
 
 let register op => rootContext := !rootContext |> applyOperation op;
 
-let runExample ex => TestContext.create () |> ex.func;
+let runExample (ex: example) => {
+  Js.log ("Running example " ^ ex.name);
+  TestContext.create () |> ex.func
+};
 
 let rec run ctx => {
   ctx.examples |> List.iter runExample;
