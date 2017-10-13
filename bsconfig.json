@@ -2,7 +2,11 @@
   "name": "respect",
   "version": "0.1.0",
   "sources": [
-    "src"
+    {"dir": "src"},
+    {
+      "dir": "tests",
+      "type": "dev"
+    }
   ],
   "bs-dependencies" : [
       // add your bs-dependencies here 

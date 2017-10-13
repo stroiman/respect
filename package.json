@@ -4,13 +4,15 @@
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
-    "watch": "bsb -make-world -w"
+    "watch": "bsb -make-world -w",
+    "test:watch": "nodemon ./lib/js/tests/demo.js"
   },
   "keywords": [
     "BuckleScript"
   ],
   "license": "MIT",
   "devDependencies": {
-    "bs-platform": "1.9.1"
+    "bs-platform": "1.9.1",
+    "nodemon": "^1.12.1"
   }
 }
