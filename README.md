@@ -1,6 +1,6 @@
 # ReSpect
 
-This is an RSpec inspired test framework for ReadonML/OCaml.
+This is an RSpec inspired test framework for ReasonML/OCaml.
 
 I base this on a lot of experience I gained from a similar project for F#, FSpec
 
