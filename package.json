@@ -1,5 +1,5 @@
 {
-  "name": "respect",
+  "name": "re-respect",
   "version": "0.0.1",
   "scripts": {
     "clean": "bsb -clean-world",
