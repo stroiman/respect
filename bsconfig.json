@@ -1,6 +1,7 @@
 {
-  "name": "re-respect",
+  "name": "Respect",
   "version": "0.1.0",
+  "namespace": true,
   "sources": [
     {"dir": "src"},
     {

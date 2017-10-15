@@ -37,7 +37,7 @@ project.
 Create a skeleton test, "./tests/tests.re":
 
 ```
-open Dsl;
+open Respect.Dsl;
 
 describe "My first test" [
   it "runs" (fun _ => {()})
