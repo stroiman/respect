@@ -1,4 +1,4 @@
-# ReSect
+# ReSpect
 
 This is an RSpec inspired test framework for ReadonML/OCaml.
 
@@ -7,12 +7,12 @@ I base this on a lot of experience I gained from a similar project for F#, FSpec
 ## Installation
 
 This guide will help you get `Respect` and having a test-watcher setup. In
-addition to `Repect`, you need these two packages:
+addition to `Respect`, you need these two packages:
  * `nodemon` - This package implements file system watcher functionality.
  * `npm-run-all` - (optional) Allows us to easily run build and tests from one npm command.
 
 ```
-npm install --save-dev respect
+npm install --save-dev re-respect
 npm install --save-dev nodemon
 npm install --save-dev npm-run-all
 ```
@@ -26,9 +26,13 @@ You need to register `respect` in you bsconfig file
    "type": "dev" }
 ],
 "bs-dependencies": [
-  "respect"
+  "re-respect"
 ]
 ```
+
+Note: The library should probably have been listed under `bs-dev-dependencies`
+instead of `bs-dependencies`, but that doesn't currently work for my test
+project.
 
 Create a skeleton test, "./tests/tests.re":
 
@@ -55,7 +59,7 @@ Add npm script, for example:
 ```
 
 And now, you can have the tests run automatically when a source file changes
-with the command `npm run dev`
+with the command `npm run dev`.
 
 ## Syntax
 
