@@ -6,18 +6,22 @@ I base this on a lot of experience I gained from a similar project for F#, FSpec
 
 ## Installation
 
-This guide will help you get `Respect` and having a test-watcher setup. In
-addition to `Respect`, you need these two packages:
- * `nodemon` - This package implements file system watcher functionality.
- * `npm-run-all` - (optional) Allows us to easily run build and tests from one npm command.
+This guide will help you get `Respect` and having a test-watcher setup.
+_Respect_ in itself does not implement test-watcher functionality, but it is
+easily added with the _nodemon_ package.
+
+### Basic installation
+
+First, add _respect_, the npm package is named "re-respect"
 
 ```
 npm install --save-dev re-respect
-npm install --save-dev nodemon
-npm install --save-dev npm-run-all
 ```
 
-You need to register `respect` in you bsconfig file
+As this is a package with Reason code, you need to add it to the _bsconfig.json_
+file, as well. You might also want to add a "tests" folder, marking the contents
+as "dev".
+
 
 ```
 "files": [
@@ -25,14 +29,14 @@ You need to register `respect` in you bsconfig file
   {"dir": "tests",
    "type": "dev" }
 ],
-"bs-dependencies": [
+"bs-dev-dependencies": [
   "re-respect"
 ]
 ```
 
-Note: The library should probably have been listed under `bs-dev-dependencies`
-instead of `bs-dependencies`, but that doesn't currently work for my test
-project.
+I sometimes had problems that the reason compiler couldn't recognize the
+`Respect` namespace, in which, moving the "re-respect" pacage to
+"bs-dependencies" seemed to help.
 
 Create a skeleton test, "./tests/tests.re":
 
@@ -46,20 +50,57 @@ describe "My first test" [
 !rootContext |> run
 ```
 
-Add npm script, for example:
+### Adding test watcher functionality
+
+The npm package _nodemon_ can trigger running _.js_ files when the file system
+changes. We can use this to implement filesystem watcher functionality. First
+install the package
+
+```
+npm install --save-dev nodemon
+```
+
+And then add a script to the _package.json_ file
 
 ```
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
-    "test:watch": "nodemon ./lib/js/tests/root.js",
-    "dev": "run-p test:watch watch"
+    "test:watch": "nodemon ./lib/js/tests/tests.js"
   }
 ```
 
-And now, you can have the tests run automatically when a source file changes
-with the command `npm run dev`.
+And now, you can have the tests run automatically when a _.js_ file changes
+with the command `npm run test:watch`. Of course, when you edit reason source
+files, that will not trigger a test run, so you need to run `npm run watch` in a
+different terminal
+
+### Optionally, create a _dev_ task
+
+In the previous section, you had to run two watchers in two separate terminals
+in order to have full watcher implementation. We can create an npm script that
+does both of these tasks with the help of the npm package _npm-run-all_, which
+allows parallel execution of multiple scripts.
+
+```
+npm install --save-dev npm-run-all
+```
+
+In the _package.json_ file, add a new script:
+
+```
+  "scripts": {
+    ...
+    "dev": "run-p watch test:watch"
+  }
+```
+
+The command `run-p` is part of _npm-run-all_, and it runs the two scripts in
+parallel.
+
+Now you can run `npm run dev` in one terminal, and it will compile reason files,
+and run tests, as files are written on disk.
 
 ## Syntax
 
