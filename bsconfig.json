@@ -1,6 +1,5 @@
 {
   "name": "Respect",
-  "namespace": true,
   "version": "0.0.3",
   "sources": [
     {"dir": "src"},

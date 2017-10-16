@@ -1,4 +1,4 @@
-open Dsl;
+open Respect.Dsl;
 
 let anExampleWithCode fn => {name: "dummy", func: fn};
 
