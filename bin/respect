@@ -1,13 +1,12 @@
-[%%bs.raw
-  {|
+#!/usr/bin/env node
 const glob = require('glob');
 const path = require('path');
+const runner = require('../lib/js/src/respect_clihelper');
 
 const files = glob.sync("lib/js/tests/*.js");
 
 for (let f of files) {
   require(path.resolve(f));
-} |}
-];
+} 
 
-Respect.Runner.runRoot ();
+runner.runRoot();

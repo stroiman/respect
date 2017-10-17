@@ -9,6 +9,7 @@
     "test": "node lib/js/bin/respect_cli.js",
     "dev": "run-p watch test:watch"
   },
+  "bin": {"respect": "./bin/respect"},
   "keywords": [
     "BuckleScript"
   ],
