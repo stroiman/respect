@@ -5,7 +5,8 @@
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
-    "test:watch": "nodemon ./lib/js/tests/demo.js",
+    "test:watch": "nodemon lib/js/bin/respect_cli.js",
+    "test": "node lib/js/bin/respect_cli.js",
     "dev": "run-p watch test:watch"
   },
   "keywords": [
@@ -16,5 +17,8 @@
     "bs-platform": "1.9.1",
     "nodemon": "^1.12.1",
     "npm-run-all": "^4.1.1"
+  },
+  "dependencies": {
+    "glob": "^7.1.2"
   }
 }

@@ -2,6 +2,7 @@
   "name": "re-respect",
   "version": "0.0.3",
   "sources": [
+    {"dir": "bin"},
     {"dir": "src"},
     {
       "dir": "tests",

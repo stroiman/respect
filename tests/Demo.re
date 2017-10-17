@@ -44,5 +44,4 @@ describe
   ] |> register;
 
 Js.log "*  Starting test run";
-
-!rootContext |> run;
+/*!rootContext |> run;*/

@@ -51,4 +51,5 @@ module Runner = {
     ctx.examples |> List.iter runExample;
     ctx.children |> List.iter (fun x => run x)
   };
+  let runRoot () => !rootContext |> run;
 };
