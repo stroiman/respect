@@ -1,6 +1,6 @@
 {
   "name": "re-respect",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
@@ -9,7 +9,9 @@
     "test": "node lib/js/bin/respect_cli.js",
     "dev": "run-p watch test:watch"
   },
-  "bin": {"respect": "./bin/respect"},
+  "bin": {
+    "respect": "./bin/respect"
+  },
   "keywords": [
     "BuckleScript"
   ],
