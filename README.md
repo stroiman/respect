@@ -18,7 +18,7 @@ First, add _respect_, the npm package is named "re-respect"
 npm install --save-dev re-respect
 ```
 
-As this is a package with Reason code, you need to add a refenrence to the
+As this is a package with Reason code, you need to add a reference to the
 package in the _bsconfig.json_ file, as well.
 
 You also need to add a _tests_ folder to contain the tests. At this early time
@@ -45,6 +45,9 @@ describe "My first test" [
   it "runs" (fun _ => {()})
 ] |> register
 ```
+
+The `register` call is necessary at this early stage, it adds the specs to one
+global test group.
 
 Now, let's add a test target to _package.json_
 
@@ -109,9 +112,8 @@ and run tests, as files are written on disk.
 
 ## Syntax
 
-Instead of using nested function calls as both RSpec, and it JavaScript clones,
-Jasmine, Mocha, Jest, etc, this uses immutable data structures to build up the
-test hierarcy.
+Instead of using mutating nested function calls, _Respect_ uses immutable data
+structures for building up the test context and tests.
 
 ```
 register(
@@ -133,7 +135,4 @@ register(
 
 The only mutating construct here is the function `register` which adds the test
 context to a root context.
-
-I'm still quite new to ReasonML, so time will tell if I can bring my experiences
-from FSpec to this project
 
