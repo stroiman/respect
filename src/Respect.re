@@ -51,13 +51,28 @@ module Runner = {
     | (TestSucceeded, TestSucceeded) => TestSucceeded
     | _ => TestFailed
     };
-  let runExample (ex: example) => {
-    Js.log ("Running example " ^ ex.name);
-    TestContext.create () |> ex.func
-  };
+  let runExample (ex: example) =>
+    try {
+      TestContext.create () |> ex.func;
+      Js.log (ex.name ^ " - SUCCESS");
+      TestSucceeded
+    } {
+    | _ =>
+      Js.log (ex.name ^ " - FAILED");
+      TestFailed
+    };
   let rec run ctx :executionResult => {
     let dorun ctx => {
-      ctx.examples |> List.iter runExample;
+      let result =
+        ctx.examples |>
+        List.fold_left
+          (
+            fun a ex => {
+              let b = ex |> runExample;
+              mergeResult a b
+            }
+          )
+          TestSucceeded;
       ctx.children |>
       List.fold_left
         (
@@ -66,7 +81,7 @@ module Runner = {
             mergeResult a b
           }
         )
-        TestSucceeded
+        result
     };
     let result =
       try (dorun ctx) {
