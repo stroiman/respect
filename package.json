@@ -13,7 +13,13 @@
     "respect": "./bin/respect"
   },
   "keywords": [
-    "BuckleScript"
+    "BuckleScript",
+    "reason",
+    "reasonml",
+    "test",
+    "testing",
+    "tdd",
+    "bdd"
   ],
   "license": "MIT",
   "devDependencies": {
