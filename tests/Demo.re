@@ -1,8 +1,10 @@
 open Respect.Dsl;
 
-open TestHelpers;
+open Respect.Runner;
 
-open Matcher;
+open Respect.Matcher;
+
+open TestHelpers;
 
 let exec x => ExampleGroup.empty |> applyOperation x |> run;
 
