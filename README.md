@@ -18,10 +18,12 @@ First, add _respect_, the npm package is named "re-respect"
 npm install --save-dev re-respect
 ```
 
-As this is a package with Reason code, you need to add it to the _bsconfig.json_
-file, as well. You might also want to add a "tests" folder, marking the contents
-as "dev".
+As this is a package with Reason code, you need to add a refenrence to the
+package in the _bsconfig.json_ file, as well.
 
+You also need to add a _tests_ folder to contain the tests. At this early time
+of writing, the only place that Respect searches for tests files is in the test
+folder.
 
 ```
 "files": [
@@ -34,10 +36,6 @@ as "dev".
 ]
 ```
 
-I sometimes had problems that the reason compiler couldn't recognize the
-`Respect` namespace, in which, moving the "re-respect" pacage to
-"bs-dependencies" seemed to help.
-
 Create a skeleton test, "./tests/tests.re":
 
 ```
@@ -46,9 +44,18 @@ open Respect.Dsl;
 describe "My first test" [
   it "runs" (fun _ => {()})
 ] |> register
-
-!rootContext |> run
 ```
+
+Now, let's add a test target to _package.json_
+
+```
+"scripts": {
+   ...
+   "test": "respect"
+}
+```
+
+And now, you can run the tests with `npm run test`
 
 ### Adding test watcher functionality
 
@@ -64,17 +71,15 @@ And then add a script to the _package.json_ file
 
 ```
   "scripts": {
-    "clean": "bsb -clean-world",
-    "build": "bsb -make-world",
-    "watch": "bsb -make-world -w",
-    "test:watch": "nodemon ./lib/js/tests/tests.js"
+    ...
+    "test:watch": "nodemon node_modules/re-respect/bin/respect"
   }
 ```
 
 And now, you can have the tests run automatically when a _.js_ file changes
 with the command `npm run test:watch`. Of course, when you edit reason source
 files, that will not trigger a test run, so you need to run `npm run watch` in a
-different terminal
+different terminal.
 
 ### Optionally, create a _dev_ task
 
