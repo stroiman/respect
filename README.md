@@ -1,6 +1,7 @@
 # ReSpect
 
-This is an RSpec inspired test framework for ReasonML/OCaml.
+This is an RSpec inspired test framework for ReasonML/OCaml/Bucklescript. The
+runner uses raw javascript code, so it will only run in node environments at the moment.
 
 I base this on a lot of experience I gained from a similar project for F#, FSpec
 
