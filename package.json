@@ -5,8 +5,8 @@
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
-    "test:watch": "nodemon lib/js/bin/respect_cli.js",
-    "test": "node lib/js/bin/respect_cli.js",
+    "test:watch": "nodemon bin/respect",
+    "test": "node bin/respect",
     "dev": "run-p watch test:watch"
   },
   "bin": {

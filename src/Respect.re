@@ -43,13 +43,45 @@ module Dsl = {
 
 module Runner = {
   open Dsl;
+  type executionResult =
+    | TestSucceeded
+    | TestFailed;
+  let mergeResult a b =>
+    switch (a, b) {
+    | (TestSucceeded, TestSucceeded) => TestSucceeded
+    | _ => TestFailed
+    };
   let runExample (ex: example) => {
     Js.log ("Running example " ^ ex.name);
     TestContext.create () |> ex.func
   };
-  let rec run ctx => {
-    ctx.examples |> List.iter runExample;
-    ctx.children |> List.iter (fun x => run x)
+  let rec run ctx :executionResult => {
+    let dorun ctx => {
+      ctx.examples |> List.iter runExample;
+      ctx.children |>
+      List.fold_left
+        (
+          fun a x => {
+            let b = run x;
+            mergeResult a b
+          }
+        )
+        TestSucceeded
+    };
+    let result =
+      try (dorun ctx) {
+      | _ => TestFailed
+      };
+    result
   };
   let runRoot () => !rootContext |> run;
+};
+
+module TestResult = {
+  open Runner;
+  let isSuccess result =>
+    switch result {
+    | TestSucceeded => true
+    | TestFailed => false
+    };
 };
