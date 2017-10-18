@@ -37,6 +37,19 @@ describe
   ] |> register;
 
 describe
+  "Async tests"
+  [
+    it_a
+      "has an async test"
+      (
+        fun _ cb => {
+          let work () => cb TestSucceeded;
+          Js.Global.setTimeout work 10 |> ignore
+        }
+      )
+  ] |> register;
+
+describe
   "Runner"
   [
     describe

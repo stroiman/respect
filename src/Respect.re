@@ -34,6 +34,7 @@ module Dsl = {
     | AddContextOperation string (list operation)
     | AddExampleOperation string testFunc;
   let it name (ex: TestContext.t => unit) => AddExampleOperation name (wrapTest ex);
+  let it_a name ex => AddExampleOperation name ex;
   let describe name ops => AddContextOperation name ops;
   module ExampleGroup = {
     let empty = {name: "", children: [], setups: [], examples: []};
