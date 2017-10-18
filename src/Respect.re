@@ -1,27 +1,38 @@
 module Matcher = Respect_matcher;
 
+/*
+   Module Domain describes the internal structure that represents examples
+   and groups of examples.
+ */
 module Domain = {
+  /* Represents the outcome of running a test */
   type executionResult =
     | TestSucceeded
     | TestFailed;
-};
-
-module Dsl = {
-  open Domain;
-  type callB = executionResult => unit;
-  type testFunc = TestContext.t => callB => unit;
+  type executionCallback = executionResult => unit;
+  type testFunc = TestContext.t => executionCallback => unit;
   type example = {
     name: string,
     func: testFunc
   };
   type setup =
     | Setup testFunc;
+  /* A group of examples, and nested groups */
   type exampleGroup = {
     name: string,
     children: list exampleGroup,
     setups: list setup,
     examples: list example
   };
+  module ExampleGroup = {
+    let empty = {name: "", children: [], setups: [], examples: []};
+    let addChild child root => {...root, children: root.children @ [child]};
+    let addExample ex grp => {...grp, examples: grp.examples @ [ex]};
+  };
+};
+
+module Dsl = {
+  open Domain;
   let wrapTest (fn: TestContext.t => unit) :testFunc =>
     fun ctx callback =>
       try {
@@ -36,11 +47,6 @@ module Dsl = {
   let it name (ex: TestContext.t => unit) => AddExampleOperation name (wrapTest ex);
   let it_a name ex => AddExampleOperation name ex;
   let describe name ops => AddContextOperation name ops;
-  module ExampleGroup = {
-    let empty = {name: "", children: [], setups: [], examples: []};
-    let addChild child root => {...root, children: root.children @ [child]};
-    let addExample ex grp => {...grp, examples: grp.examples @ [ex]};
-  };
   let rec applyOperation operation context =>
     switch operation {
     | AddExampleOperation name func => {...context, examples: [{name, func}, ...context.examples]}

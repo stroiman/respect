@@ -1,5 +1,7 @@
 open Respect.Dsl;
 
+open Respect.Domain;
+
 let anExampleWithCode fn => {name: "dummy", func: wrapTest fn};
 
 let anExampleGroup = ExampleGroup.empty;
