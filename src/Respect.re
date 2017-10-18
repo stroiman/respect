@@ -61,27 +61,30 @@ module Runner = {
       Js.log (ex.name ^ " - FAILED");
       callback TestFailed
     };
-  let rec run ctx :executionResult => {
-    let r = ref TestSucceeded;
-    let rec iter state tests callback =>
-      switch tests {
-      | [] => callback state
-      | [ex, ...rest] =>
-        runExample ex (fun result => iter (mergeResult result state) rest callback)
-      };
-    iter TestSucceeded ctx.examples (fun x => r := x);
-    let result = !r;
-    ctx.children |>
-    List.fold_left
-      (
-        fun a x => {
-          let b = run x;
-          mergeResult a b
-        }
-      )
-      result
+  let run ctx callback => {
+    let rec doRun ctx => {
+      let r = ref TestSucceeded;
+      let rec iter state tests callback =>
+        switch tests {
+        | [] => callback state
+        | [ex, ...rest] =>
+          runExample ex (fun result => iter (mergeResult result state) rest callback)
+        };
+      iter TestSucceeded ctx.examples (fun x => r := x);
+      let result = !r;
+      ctx.children |>
+      List.fold_left
+        (
+          fun a x => {
+            let b = doRun x;
+            mergeResult a b
+          }
+        )
+        result
+    };
+    callback (doRun ctx)
   };
-  let runRoot callback => callback (!rootContext |> run);
+  let runRoot callback => run !rootContext (fun x => callback x);
 };
 
 module TestResult = {

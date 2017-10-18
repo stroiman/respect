@@ -44,9 +44,10 @@ describe
           "returns an error message"
           (
             fun _ => {
-              let result =
-                anExampleGroup |> withExampleCode (fun _ => raise (TestFailed "")) |> run;
-              result |> should beFailure
+              let result = ref TestSucceeded;
+              let ex = anExampleGroup |> withExampleCode (fun _ => raise (TestFailed ""));
+              run ex (fun x => result := x);
+              !result |> should beFailure
             }
           )
       ] /*it "returns an error message" (fun _ => {*/,
@@ -58,7 +59,8 @@ describe
         fun _ => {
           let lines = ref [];
           let append line => lines := [line, ...!lines];
-          anExampleGroup |> withExampleCode (fun _ => append "x") |> run |> ignore;
+          let ex = anExampleGroup |> withExampleCode (fun _ => append "x");
+          run ex ignore;
           !lines |> should (equal ["x"])
         }
       )
