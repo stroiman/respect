@@ -26,9 +26,9 @@ describe
           "Makes the data retrievable"
           (
             fun _ => {
-              let x = TestContext.create ();
-              x |> TestContext.add "x" 42;
-              x |> TestContext.get "x" |> should (equal 42)
+              let ctx = TestContext.create ();
+              ctx |> TestContext.add "key" 42;
+              ctx |> TestContext.get "key" |> should (equal 42)
             }
           )
       ]
