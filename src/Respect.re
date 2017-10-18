@@ -51,28 +51,37 @@ module Runner = {
     | (TestSucceeded, TestSucceeded) => TestSucceeded
     | _ => TestFailed
     };
-  let runExample (ex: example) =>
+  let runExample (ex: example) callback =>
     try {
       TestContext.create () |> ex.func;
       Js.log (ex.name ^ " - SUCCESS");
-      TestSucceeded
+      callback TestSucceeded
     } {
     | _ =>
       Js.log (ex.name ^ " - FAILED");
-      TestFailed
+      callback TestFailed
     };
   let rec run ctx :executionResult => {
     let dorun ctx => {
-      let result =
-        ctx.examples |>
-        List.fold_left
-          (
-            fun a ex => {
-              let b = ex |> runExample;
-              mergeResult a b
-            }
-          )
-          TestSucceeded;
+      let r = ref TestSucceeded;
+      let rec iter state tests callback =>
+        switch tests {
+        | [] => callback state
+        | [ex, ...rest] =>
+          runExample ex (fun result => iter (mergeResult result state) rest callback)
+        };
+      iter TestSucceeded ctx.examples (fun x => r := x);
+      let result = !r;
+      /*ctx.examples |>*/
+      /*List.fold_left*/
+      /*(*/
+      /*fun a ex => {*/
+      /*let x = ref TestSucceeded;*/
+      /*runExample ex (fun result => x := result);*/
+      /*mergeResult a !x*/
+      /*}*/
+      /*)*/
+      /*TestSucceeded;*/
       ctx.children |>
       List.fold_left
         (
