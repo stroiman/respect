@@ -9,5 +9,6 @@ for (let f of files) {
   require(path.resolve(f));
 } 
 
-let result = runner.runRoot();
-process.exit(result);
+runner.runRoot(function(result) {
+  process.exit(result);
+});

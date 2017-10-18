@@ -89,7 +89,7 @@ module Runner = {
       };
     result
   };
-  let runRoot () => !rootContext |> run;
+  let runRoot callback => callback (!rootContext |> run);
 };
 
 module TestResult = {
