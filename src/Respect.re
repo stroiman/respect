@@ -61,28 +61,22 @@ module Runner = {
       Js.log (ex.name ^ " - FAILED");
       callback TestFailed
     };
-  let run ctx callback => {
-    let rec doRun ctx => {
-      let r = ref TestSucceeded;
-      let rec iter state tests callback =>
-        switch tests {
-        | [] => callback state
-        | [ex, ...rest] =>
-          runExample ex (fun result => iter (mergeResult result state) rest callback)
-        };
-      iter TestSucceeded ctx.examples (fun x => r := x);
-      let result = !r;
-      ctx.children |>
-      List.fold_left
-        (
-          fun a x => {
-            let b = doRun x;
-            mergeResult a b
-          }
-        )
-        result
-    };
-    callback (doRun ctx)
+  let rec run ctx callback => {
+    let r = ref TestSucceeded;
+    let rec iter state tests callback =>
+      switch tests {
+      | [] => callback state
+      | [ex, ...rest] =>
+        runExample ex (fun result => iter (mergeResult result state) rest callback)
+      };
+    iter TestSucceeded ctx.examples (fun x => r := x);
+    let result = !r;
+    let rec iterGrps state grps callback =>
+      switch grps {
+      | [] => callback state
+      | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
+      };
+    iterGrps result ctx.children (fun x => callback x)
   };
   let runRoot callback => run !rootContext (fun x => callback x);
 };
