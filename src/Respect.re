@@ -62,41 +62,24 @@ module Runner = {
       callback TestFailed
     };
   let rec run ctx :executionResult => {
-    let dorun ctx => {
-      let r = ref TestSucceeded;
-      let rec iter state tests callback =>
-        switch tests {
-        | [] => callback state
-        | [ex, ...rest] =>
-          runExample ex (fun result => iter (mergeResult result state) rest callback)
-        };
-      iter TestSucceeded ctx.examples (fun x => r := x);
-      let result = !r;
-      /*ctx.examples |>*/
-      /*List.fold_left*/
-      /*(*/
-      /*fun a ex => {*/
-      /*let x = ref TestSucceeded;*/
-      /*runExample ex (fun result => x := result);*/
-      /*mergeResult a !x*/
-      /*}*/
-      /*)*/
-      /*TestSucceeded;*/
-      ctx.children |>
-      List.fold_left
-        (
-          fun a x => {
-            let b = run x;
-            mergeResult a b
-          }
-        )
-        result
-    };
-    let result =
-      try (dorun ctx) {
-      | _ => TestFailed
+    let r = ref TestSucceeded;
+    let rec iter state tests callback =>
+      switch tests {
+      | [] => callback state
+      | [ex, ...rest] =>
+        runExample ex (fun result => iter (mergeResult result state) rest callback)
       };
-    result
+    iter TestSucceeded ctx.examples (fun x => r := x);
+    let result = !r;
+    ctx.children |>
+    List.fold_left
+      (
+        fun a x => {
+          let b = run x;
+          mergeResult a b
+        }
+      )
+      result
   };
   let runRoot callback => callback (!rootContext |> run);
 };
