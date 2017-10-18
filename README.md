@@ -137,3 +137,21 @@ register(
 The only mutating construct here is the function `register` which adds the test
 context to a root context.
 
+## Async tests
+
+Simple async tests are now possible. Note that there is no timeout implemented
+yet, so if your tests fail to call the given callback, the test run will hang.
+Luckily, the suggested method of using _nodemon_ gladly kills a hanging process.
+
+```
+register(
+  describe "Parent context" [
+    it_a "has an async test" (fun _ cb => {
+      if (success) {
+        callback(TestSucceeded)
+      }else {
+        callback(TestFailed)
+      }
+    })
+  ])
+```
