@@ -1,7 +1,15 @@
 module Matcher = Respect_matcher;
 
+module Domain = {
+  type executionResult =
+    | TestSucceeded
+    | TestFailed;
+};
+
 module Dsl = {
-  type testFunc = TestContext.t => unit;
+  open Domain;
+  type callB = executionResult => unit;
+  type testFunc = TestContext.t => callB => unit;
   type example = {
     name: string,
     func: testFunc
@@ -14,10 +22,18 @@ module Dsl = {
     setups: list setup,
     examples: list example
   };
+  let wrapTest (fn: TestContext.t => unit) :testFunc =>
+    fun ctx callback =>
+      try {
+        fn ctx;
+        callback TestSucceeded
+      } {
+      | _ => callback TestFailed
+      };
   type operation =
     | AddContextOperation string (list operation)
     | AddExampleOperation string testFunc;
-  let it name ex => AddExampleOperation name ex;
+  let it name (ex: TestContext.t => unit) => AddExampleOperation name (wrapTest ex);
   let describe name ops => AddContextOperation name ops;
   module ExampleGroup = {
     let empty = {name: "", children: [], setups: [], examples: []};
@@ -42,47 +58,52 @@ module Dsl = {
 };
 
 module Runner = {
+  open Domain;
   open Dsl;
-  type executionResult =
-    | TestSucceeded
-    | TestFailed;
   let mergeResult a b =>
     switch (a, b) {
     | (TestSucceeded, TestSucceeded) => TestSucceeded
     | _ => TestFailed
     };
-  let runExample (ex: example) callback =>
-    try {
-      TestContext.create () |> ex.func;
-      Js.log (ex.name ^ " - SUCCESS");
-      callback TestSucceeded
-    } {
-    | _ =>
-      Js.log (ex.name ^ " - FAILED");
-      callback TestFailed
-    };
+  let runExample (ex: example) callback => {
+    let ctx = TestContext.create ();
+    ex.func
+      ctx
+      (
+        fun r => {
+          let str =
+            switch r {
+            | TestSucceeded => "SUCCESS"
+            | TestFailed => "FAILED"
+            };
+          Js.log ("EXAMPLE: " ^ ex.name ^ " - " ^ str);
+          callback r
+        }
+      )
+  };
   let rec run ctx callback => {
-    let r = ref TestSucceeded;
+    Js.log ("Entering context " ^ ctx.name);
     let rec iter state tests callback =>
       switch tests {
       | [] => callback state
       | [ex, ...rest] =>
         runExample ex (fun result => iter (mergeResult result state) rest callback)
       };
-    iter TestSucceeded ctx.examples (fun x => r := x);
-    let result = !r;
     let rec iterGrps state grps callback =>
       switch grps {
       | [] => callback state
       | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
       };
-    iterGrps result ctx.children (fun x => callback x)
+    iter
+      TestSucceeded
+      ctx.examples
+      (fun exampleResults => iterGrps exampleResults ctx.children (fun x => callback x))
   };
   let runRoot callback => run !rootContext (fun x => callback x);
 };
 
 module TestResult = {
-  open Runner;
+  open Domain;
   let isSuccess result =>
     switch result {
     | TestSucceeded => true

@@ -2,6 +2,8 @@ open Respect.Dsl;
 
 open Respect.Runner;
 
+open Respect.Domain;
+
 open Respect.Matcher;
 
 open TestHelpers;
@@ -12,8 +14,8 @@ exception TestFailed string;
 
 let beFailure result =>
   switch result {
-  | Respect.Runner.TestSucceeded => Respect.Matcher.Failure
-  | Respect.Runner.TestFailed => Success ()
+  | Respect.Domain.TestSucceeded => Respect.Matcher.Failure
+  | Respect.Domain.TestFailed => Success ()
   };
 
 describe
