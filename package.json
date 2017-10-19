@@ -1,6 +1,6 @@
 {
   "name": "re-respect",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
@@ -30,8 +30,8 @@
   "dependencies": {
     "glob": "^7.1.2"
   },
-  "repository" : { 
-    "type" : "git", 
-    "url" : "https://github.com/PeteProgrammer/respect.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PeteProgrammer/respect.git"
   }
 }
