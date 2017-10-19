@@ -31,6 +31,10 @@ module Domain = {
   };
 };
 
+/*
+ The Dsl module contains the constructs you use to describe examples and
+ groups, as well as functions to map this to domain types
+ */
 module Dsl = {
   open Domain;
   let wrapTest (fn: TestContext.t => unit) :testFunc =>
