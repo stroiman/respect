@@ -32,8 +32,8 @@ module Domain = {
 };
 
 /*
- The Dsl module contains the constructs you use to describe examples and
- groups, as well as functions to map this to domain types
+   The Dsl module contains the constructs you use to describe examples and
+   groups, as well as functions to map this to domain types
  */
 module Dsl = {
   open Domain;
@@ -45,11 +45,24 @@ module Dsl = {
       } {
       | _ => callback TestFailed
       };
+  type doneCallback = err::string? => unit => unit;
+  let wrapW (fn: TestContext.t => doneCallback => unit) :testFunc =>
+    fun (ctx: TestContext.t) callback =>
+      fn
+        ctx
+        (
+          fun ::err=? () =>
+            switch err {
+            | None => callback TestSucceeded
+            | Some _ => callback TestFailed
+            }
+        );
   type operation =
     | AddContextOperation string (list operation)
     | AddExampleOperation string testFunc;
   let it name (ex: TestContext.t => unit) => AddExampleOperation name (wrapTest ex);
   let it_a name ex => AddExampleOperation name ex;
+  let it_w name ex => AddExampleOperation name (wrapW ex);
   let describe name ops => AddContextOperation name ops;
   let rec applyOperation operation context =>
     switch operation {
