@@ -1,13 +1,15 @@
 type matchResult 't =
-  | Success 't
-  | Failure;
+  | MatchSuccess 't
+  | MatchFailure;
 
 exception MatchFailedException string;
 
-let equal expected actual => actual == expected ? Success actual : Failure;
+let equal expected actual => actual == expected ? MatchSuccess actual : MatchFailure;
 
 let should matcher actual =>
   switch (matcher actual) {
-  | Success _ => ()
-  | Failure => MatchFailedException "Match failed" |> raise
+  | MatchSuccess _ => ()
+  | MatchFailure =>
+    let msg: string = Format.sprintf "Match failed Actual: %d " actual;
+    MatchFailedException msg |> raise
   };
