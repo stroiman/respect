@@ -14,8 +14,8 @@ exception TestFailed string;
 
 let beFailure result =>
   switch result {
-  | Respect.Domain.TestSucceeded => Respect.Matcher.Failure
-  | Respect.Domain.TestFailed => Success ()
+  | Respect.Domain.TestSucceeded => MatchFailure (Obj.repr ())
+  | Respect.Domain.TestFailed => MatchSuccess ()
   };
 
 describe
