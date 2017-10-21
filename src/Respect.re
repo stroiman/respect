@@ -87,38 +87,48 @@ module Runner = {
   open Dsl;
   let mergeResult a b =>
     switch (a, b) {
-    | (TestSucceeded, TestSucceeded) => TestSucceeded
-    | _ => TestFailed
-    };
-  let runExample (ex: example) callback => {
+      | (TestSucceeded, TestSucceeded) => TestSucceeded
+      | _ => TestFailed
+      };
+  let runExample (grp:exampleGroup) (ex: example) callback => {
     let ctx = TestContext.create ();
-    ex.func
-      ctx
-      (
-        fun r => {
-          let str =
-            switch r {
-            | TestSucceeded => "SUCCESS"
-            | TestFailed => "FAILED"
-            };
-          Js.log ("EXAMPLE: " ^ ex.name ^ " - " ^ str);
-          callback r
-        }
-      )
+    let doRun () =>{
+      ex.func
+        ctx
+        (
+          fun r => {
+            let str =
+              switch r {
+                | TestSucceeded => "SUCCESS"
+                | TestFailed => "FAILED"
+                };
+            Js.log ("EXAMPLE: " ^ ex.name ^ " - " ^ str);
+            callback r
+          }
+        );
+    };
+    switch(grp.setups) {
+      | [] => doRun();
+      | [(Setup x), ..._] => {
+        x ctx (fun _ => {
+          doRun();
+        });
+      };
+    }
   };
   let rec run ctx callback => {
     Js.log ("Entering context " ^ ctx.name);
     let rec iter state tests callback =>
       switch tests {
-      | [] => callback state
-      | [ex, ...rest] =>
-        runExample ex (fun result => iter (mergeResult result state) rest callback)
+        | [] => callback state
+        | [ex, ...rest] =>
+        runExample ctx ex (fun result => iter (mergeResult result state) rest callback)
       };
     let rec iterGrps state grps callback =>
       switch grps {
-      | [] => callback state
-      | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
-      };
+        | [] => callback state
+        | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
+        };
     iter
       TestSucceeded
       ctx.examples
