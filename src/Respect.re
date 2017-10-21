@@ -28,6 +28,7 @@ module Domain = {
     let empty = {name: "", children: [], setups: [], examples: []};
     let addChild child root => {...root, children: root.children @ [child]};
     let addExample ex grp => {...grp, examples: grp.examples @ [ex]};
+    let addSetup code grp => {...grp, setups: grp.setups @ [code]};
   };
 };
 
