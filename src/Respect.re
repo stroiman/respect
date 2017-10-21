@@ -110,8 +110,11 @@ module Runner = {
     switch(grp.setups) {
       | [] => doRun();
       | [(Setup x), ..._] => {
-        x ctx (fun _ => {
-          doRun();
+        x ctx (fun result => {
+          switch(result) {
+          | TestFailed => callback TestFailed;
+          | TestSucceeded => doRun();
+          }
         });
       };
     }
