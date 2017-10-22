@@ -12,6 +12,7 @@ module Domain = {
     | TestSucceeded
     | TestFailed;
   type executionCallback = executionResult => unit;
+  /* Internal implementation, a nicer callback is exposed via the DSL */
   type testFunc = TestContext.t => executionCallback => unit;
   type example = {
     name: string,
@@ -61,18 +62,18 @@ module Dsl = {
             }
         );
   type operation =
-    | AddContextOperation string (list operation)
+    | AddChildGroupOperation string (list operation)
     | AddExampleOperation string testFunc;
   let it name (ex: TestContext.t => unit) => AddExampleOperation name (wrapTest ex);
   let it_a name ex => AddExampleOperation name ex;
   let it_w name ex => AddExampleOperation name (wrapW ex);
-  let describe name ops => AddContextOperation name ops;
+  let describe name ops => AddChildGroupOperation name ops;
   let rec applyOperation operation context =>
     switch operation {
     | AddExampleOperation name func => {...context, examples: [{name, func}, ...context.examples]}
-    | AddContextOperation name ops =>
+    | AddChildGroupOperation name ops =>
       let initial = {...ExampleGroup.empty, name};
-      let newChild = List.fold_left (fun ctx op => applyOperation op ctx) initial ops;
+      let newChild = List.fold_left (fun grp op => applyOperation op grp) initial ops;
       let newChild' = {
         ...newChild,
         children: newChild.children |> List.rev,
@@ -129,9 +130,9 @@ module Runner = {
     runParentGroups (groupStack |> List.rev);
   };
 
-  let rec run ctx parents callback => {
-    let groupStack = [ctx, ...parents];
-    Js.log ("Entering context " ^ ctx.name);
+  let rec run grp parents callback => {
+    let groupStack = [grp, ...parents];
+    Js.log ("Entering context " ^ grp.name);
     let rec iter state tests callback => {
       switch tests {
         | [] => callback state
@@ -147,10 +148,14 @@ module Runner = {
     };
     iter
       TestSucceeded
-      ctx.examples
-      (fun exampleResults => iterGrps exampleResults ctx.children (fun x => callback x))
+      grp.examples
+      (fun exampleResults => iterGrps exampleResults grp.children (fun x => callback x))
   };
-  let run ctx callback => run ctx [] callback;
+  /* Runs all tests in a single example group. Since a group has no knowledge
+     of its parents, using this function will not run setup code registered in
+     parents */
+  let run grp callback => run grp [] callback;
+  /* Runs all tests registered in the root example group */
   let runRoot callback => run !rootContext (fun x => callback x);
 };
 
