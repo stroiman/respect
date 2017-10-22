@@ -20,5 +20,10 @@ let should (matcher: 'a => matchResult 'b) (actual: 'a) =>
 let shoulda matcher actual (don: Respect_callbacks.doneCallback) =>
   switch (matcher actual) {
   | MatchSuccess _ => don ()
-  | MatchFailure _ => don err::"match failed" ()
+  | MatchFailure expected => {
+    Js.log "Match failed";
+    Js.log ("Expected: ", expected);
+    Js.log ("Actual: ", actual);
+    don err::"match failed" ();
+  }
   };

@@ -92,7 +92,7 @@ module Runner = {
       | (TestSucceeded, TestSucceeded) => TestSucceeded
       | _ => TestFailed
       };
-  let runExample (grp: exampleGroup) (ex: example) callback => {
+  let runExample groupStack (ex: example) callback => {
     let ctx = TestContext.create ();
     let doRun () =>
       ex.func ctx (fun r => {
@@ -104,40 +104,53 @@ module Runner = {
         Js.log ("EXAMPLE: " ^ ex.name ^ " - " ^ str);
         callback r
       });
-    let rec runSetups setups => {
-      switch setups {
-        | [] => doRun ()
-        | [Setup x, ...rest] =>
-        x ctx (
-          fun result =>
-          switch result {
-            | TestFailed => callback TestFailed
-            | TestSucceeded => runSetups rest
-            }
-        )
-      }
+    let rec runParentGroups grps => {
+      switch grps {
+        |[] => doRun();
+        | [grp, ...parents] => { 
+        let rec runSetups setups => {
+          switch setups {
+            | [] => runParentGroups parents
+            | [Setup x, ...rest] =>
+            Js.log("Setup for group", grp.name);
+            x ctx (
+              fun result =>
+              switch result {
+                | TestFailed => callback TestFailed
+                | TestSucceeded => runSetups rest
+                }
+            )
+          }
+        };
+        runSetups grp.setups;
+        }
+      };
     };
-    runSetups grp.setups;
+    runParentGroups (groupStack |> List.rev);
   };
 
-  let rec run ctx callback => {
+  let rec run ctx parents callback => {
+    let groupStack = [ctx, ...parents];
     Js.log ("Entering context " ^ ctx.name);
-    let rec iter state tests callback =>
+    let rec iter state tests callback => {
       switch tests {
         | [] => callback state
         | [ex, ...rest] =>
-        runExample ctx ex (fun result => iter (mergeResult result state) rest callback)
+        runExample groupStack ex (fun result => iter (mergeResult result state) rest callback)
       };
-    let rec iterGrps state grps callback =>
+    };
+    let rec iterGrps state grps callback => {
       switch grps {
         | [] => callback state
-        | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
+        | [grp, ...rest] => run grp groupStack (fun result => iterGrps (mergeResult result state) rest callback)
         };
+    };
     iter
       TestSucceeded
       ctx.examples
       (fun exampleResults => iterGrps exampleResults ctx.children (fun x => callback x))
   };
+  let run ctx callback => run ctx [] callback;
   let runRoot callback => run !rootContext (fun x => callback x);
 };
 

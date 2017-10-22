@@ -40,8 +40,45 @@ describe "Runner" [
       run ex (fun _ => {
         (!lines |> shoulda (equal ["setup", "test"])) don;
       });
-    })
+    }),
+
+    describe "Group has two examples" [
+      it_w "Runs the setup before each example" (fun _ don => {
+        let lines = ref [];
+        let append line => lines := !lines @ [line];
+        let ex = anExampleGroup
+          |> withSetup (fun _ cb => { append "setup"; cb TestSucceeded })
+          |> withExample code::(fun _ cb => { append "test 1"; cb TestSucceeded })
+          |> withExample code::(fun _ cb => { append "test 2"; cb TestSucceeded });
+          run ex (fun _ => {
+            (!lines |> shoulda (equal ["setup", "test 1", "setup", "test 2"])) don;
+            });
+      })
+    ],
+
+    describe "Nested groups" [
+      it_w "Runs the setups from outermost to innermost group" (fun _ don => {
+        let lines = ref [];
+        let append line => lines := !lines @ [line];
+        let innerGroup = anExampleGroup
+          |> withSetup (fun _ cb => { append "inner setup"; cb TestSucceeded })
+          |> withExample code::(fun _ cb => { append "inner test"; cb TestSucceeded });
+        let outerGroup = anExampleGroup
+          |> withSetup (fun _ cb => { append "outer setup"; cb TestSucceeded })
+          |> withExample code::(fun _ cb => { append "outer test"; cb TestSucceeded })
+          |> withChildGroup innerGroup;
+
+
+
+        run outerGroup (fun _ => {
+          let expected = ["outer setup", "outer test",
+          "outer setup", "inner setup", "inner test"];
+          (!lines |> shoulda (equal expected)) don;
+        });
+      })
+    ]
   ],
+
   describe "example throws an exception" [
     it_w "returns an error message" (
       fun _ don => {

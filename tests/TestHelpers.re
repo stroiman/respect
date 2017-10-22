@@ -17,6 +17,8 @@ let withSetup code => {
   ExampleGroup.addSetup (Setup code);
 };
 
+let withChildGroup child grp => grp |> ExampleGroup.addChild child;
+
 let withExample ::name="Dummy example" ::code=passingExampleCode grp => {
   let ex : example =  { name: name, func: code };
   grp |> ExampleGroup.addExample ex;
