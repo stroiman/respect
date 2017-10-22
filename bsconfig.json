@@ -1,6 +1,5 @@
 {
   "name": "re-respect",
-  "version": "0.0.5",
   "sources": [
     {"dir": "bin"},
     {"dir": "src"},
