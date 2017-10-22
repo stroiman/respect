@@ -43,8 +43,8 @@ As this is a package with Reason code, you need to add a reference to the
 package in the _bsconfig.json_ file, as well.
 
 You also need to add a _tests_ folder to contain the tests. At this early time
-of writing, the only place that Respect searches for tests files is in the test
-folder.
+of writing, the only place that Respect searches for tests files is in the
+_tests_ folder, so be sure that is the exact name of the folder.
 
 ```
 "files": [
