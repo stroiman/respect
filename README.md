@@ -5,6 +5,17 @@ runner uses raw javascript code, so it will only run in node environments at the
 
 I base this on a lot of experience I gained from a similar project for F#, FSpec
 
+This project is still in a very earyly stage, so use at your own risk.
+
+Although, I already did write an ML-ish functional test framework, some problem
+solutions do not apply in a Reason/Bucklescript context - in particular testing
+async code.
+
+## TODO
+
+ * "Finalize" DSL for building test suites
+ * Implement asynchronous matchers
+
 ## Installation
 
 This guide will help you get `Respect` and having a test-watcher setup.
