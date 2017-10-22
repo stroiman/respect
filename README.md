@@ -13,8 +13,13 @@ async code.
 
 ## TODO
 
- * "Finalize" DSL for building test suites
- * Determine whether or not to allow mutation of `TestContext`
+ * "Finalize" DSL for building test suites.
+ * Determine whether or not to allow mutation of `TestContext`.
+ * Finalize assertion framework.
+
+Although, I had learned from many mistakes when building FSpec, there are some
+problems that demand different solutions in Reason/Bucklescript. Async support
+in particular.
 
 ## Installation
 
@@ -150,19 +155,69 @@ context to a root context.
 
 ## Async tests
 
-Simple async tests are now possible. Note that there is no timeout implemented
-yet, so if your tests fail to call the given callback, the test run will hang.
-Luckily, the suggested method of using _nodemon_ gladly kills a hanging process.
+The framework supports async tests through callbacks, but be aware of:
+
+ * There is no timeout, so if you don't get to call the callback, the test suite
+     will hang (luckily _nodemon_ happily kills the process on file changes).
+ * The callback triggers running the rest of the test suite, so don't call it
+     multiple times, or you will cause the rest of the suite to run multiple
+     times, probably with simultaneously running tests.
+
+Async support is currently best implemented by opening `Respect.Dsl.Async`.
 
 ```
-register(
-  describe "Parent context" [
-    it_a "has an async test" (fun _ cb => {
-      if (success) {
-        callback(TestSucceeded)
-      }else {
-        callback(TestFailed)
-      }
-    })
-  ])
+open Respect.Dsl.Async;
+
+describe "Parent context" [
+  it "has an async test" (fun _ don => {
+    if (success) {
+      don ();
+    }else {
+      don err::"Error" ();
+    }
+  })
+] |> register;
 ```
+
+There is currently async matcher support through the function `shoulda`
+(should-async). The function has the signature:
+
+```
+(matcher : matcher 'a 'b) => (actual : 'a) => (cb : doneCallback) => unit
+```
+
+This signature plays nicely with the callback allowing you to write tests like
+this:
+
+```
+describe "Register User" [
+  describe "Posting valid user" [
+    it "creates a user" (fun _ => {
+      createValidInput ()
+        |> UserFeature.registerUser
+        |> shoulda asyncSucceed
+    })
+  ]
+] |> register
+```
+
+This is a bit cryptic but I'll try to explain
+
+* Our test function didn't explicitly specify a done callback
+* We didn't pass a done callback to to the `shoulda` function either. This makes
+    the result of the `shoulda` function another function, which takes a done
+    callback.
+* So the result of our test function is the function returned by `should`, the
+    one that takes done callback. Thus our test function has the exact shape that `it` expects.
+* The `registerUser` is an async function that expects a callback that we didn't supply.
+* The asyncSucceed takes an async function as argument and supplies the right
+    callback that binds it to the done callback.
+
+This doesn't play nice however, if you want to have multiple assertions in the
+same test :(
+
+It will come.
+
+Please be aware that the matcher syntax is likely to change, but will I will try
+to keep backward compatibility by moving alternate matcher framework in separate
+modules.

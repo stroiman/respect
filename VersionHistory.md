@@ -3,7 +3,8 @@
 # Upcoming
 
  * Implemented nicer callback for tests `don ()` or `don err::"Failed" ()`
- * Implemented async support in assertion framework
+ * Created `Respect.Dsl.Async` module to have nice naming for async test suites.
+ * Implemented async support in assertion framework.
 
 # 0.0.4
 
