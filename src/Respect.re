@@ -1,5 +1,7 @@
 module Matcher = Respect_matcher;
 
+module Callbacks = Respect_callbacks;
+
 /*
    Module Domain describes the internal structure that represents examples
    and groups of examples.
@@ -46,7 +48,7 @@ module Dsl = {
       } {
       | _ => callback TestFailed
       };
-  type doneCallback = err::string? => unit => unit;
+  type doneCallback = Callbacks.doneCallback;
   let wrapW (fn: TestContext.t => doneCallback => unit) :testFunc =>
     fun (ctx: TestContext.t) callback =>
       fn
@@ -87,51 +89,52 @@ module Runner = {
   open Dsl;
   let mergeResult a b =>
     switch (a, b) {
-      | (TestSucceeded, TestSucceeded) => TestSucceeded
-      | _ => TestFailed
-      };
-  let runExample (grp:exampleGroup) (ex: example) callback => {
+    | (TestSucceeded, TestSucceeded) => TestSucceeded
+    | _ => TestFailed
+    };
+  let runExample (grp: exampleGroup) (ex: example) callback => {
     let ctx = TestContext.create ();
-    let doRun () =>{
+    let doRun () =>
       ex.func
         ctx
         (
           fun r => {
             let str =
               switch r {
-                | TestSucceeded => "SUCCESS"
-                | TestFailed => "FAILED"
-                };
+              | TestSucceeded => "SUCCESS"
+              | TestFailed => "FAILED"
+              };
             Js.log ("EXAMPLE: " ^ ex.name ^ " - " ^ str);
             callback r
           }
         );
-    };
-    switch(grp.setups) {
-      | [] => doRun();
-      | [(Setup x), ..._] => {
-        x ctx (fun result => {
-          switch(result) {
-          | TestFailed => callback TestFailed;
-          | TestSucceeded => doRun();
-          }
-        });
-      };
+    switch grp.setups {
+    | [] => doRun ()
+    | [Setup x, ..._] =>
+      x
+        ctx
+        (
+          fun result =>
+            switch result {
+            | TestFailed => callback TestFailed
+            | TestSucceeded => doRun ()
+            }
+        )
     }
   };
   let rec run ctx callback => {
     Js.log ("Entering context " ^ ctx.name);
     let rec iter state tests callback =>
       switch tests {
-        | [] => callback state
-        | [ex, ...rest] =>
+      | [] => callback state
+      | [ex, ...rest] =>
         runExample ctx ex (fun result => iter (mergeResult result state) rest callback)
       };
     let rec iterGrps state grps callback =>
       switch grps {
-        | [] => callback state
-        | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
-        };
+      | [] => callback state
+      | [grp, ...rest] => run grp (fun result => iterGrps (mergeResult result state) rest callback)
+      };
     iter
       TestSucceeded
       ctx.examples

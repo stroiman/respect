@@ -15,15 +15,10 @@ describe "Runner" [
         |> withSetup (fun _ cb => { append "setup"; cb TestFailed })
         |> withExample code::(fun _ cb => { append "test"; cb TestSucceeded });
       run ex (fun _ => {
-        switch(!lines) {
-          | ["setup"] => don ()
-          | _ => {
-          Js.log("Error", !lines);
-          don err::"Error"()
-          };
-        }
+        (!lines |> shoulda (equal ["setup"])) don
       });
     }),
+
     it_w "Executes the setup code before the example" (fun _ don => {
       let lines = ref [];
       let append line => lines := !lines @ [line];
@@ -31,13 +26,7 @@ describe "Runner" [
         |> withSetup (fun _ cb => { append "setup"; cb TestSucceeded })
         |> withExample code::(fun _ cb => { append "test"; cb TestSucceeded });
       run ex (fun _ => {
-        switch(!lines) {
-          | ["setup", "test"] => don ()
-          | _ => {
-          Js.log("Error", !lines);
-          don err::"Error"()
-          };
-        }
+        (!lines |> shoulda (equal ["setup", "test"])) don;
       });
     })
   ],
