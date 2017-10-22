@@ -29,5 +29,14 @@ describe "Async tests" [
       let work () => cb TestSucceeded;
       Js.Global.setTimeout work 10 |> ignore
       }
-  )
+  ),
+
+  it_w "Implements async match" (fun _ =>{
+    let result cb => {
+      let work () => cb (MatchSuccess ());
+      Js.Global.setTimeout work 10 |> ignore;
+    };
+    let runAsync () => AsyncMatchResult result;
+    () |> shoulda runAsync;
+  })
 ] |> register;
