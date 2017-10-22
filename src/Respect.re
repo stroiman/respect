@@ -63,22 +63,26 @@ module Dsl = {
         );
   type operation =
     | AddChildGroupOperation string (list operation)
-    | AddExampleOperation string testFunc;
+    | AddExampleOperation string testFunc
+    | AddSetupOperation testFunc;
   let it name (ex: TestContext.t => unit) => AddExampleOperation name (wrapTest ex);
   let it_a name ex => AddExampleOperation name ex;
   let it_w name ex => AddExampleOperation name (wrapW ex);
   let describe name ops => AddChildGroupOperation name ops;
+  let beforeEach fn => AddSetupOperation (wrapTest fn);
+  let beforeEach_w fn => AddSetupOperation (wrapW fn);
   let rec applyOperation operation context =>
     switch operation {
-    | AddExampleOperation name func => {...context, examples: [{name, func}, ...context.examples]}
-    | AddChildGroupOperation name ops =>
+      | AddSetupOperation fn => context |> ExampleGroup.addSetup (Setup fn)
+      | AddExampleOperation name func => {...context, examples: [{name, func}, ...context.examples]}
+      | AddChildGroupOperation name ops =>
       let initial = {...ExampleGroup.empty, name};
       let newChild = List.fold_left (fun grp op => applyOperation op grp) initial ops;
       let newChild' = {
         ...newChild,
-        children: newChild.children |> List.rev,
-        examples: newChild.examples |> List.rev
-      };
+          children: newChild.children |> List.rev,
+          examples: newChild.examples |> List.rev
+          };
       {...context, children: [newChild', ...context.children]}
     };
   let rootContext = ref ExampleGroup.empty;
@@ -87,7 +91,8 @@ module Dsl = {
   module Async = {
     let it = it_w;
     let describe = describe;
-    let register = register
+    let register = register;
+    let beforeEach = beforeEach_w;
   }
 };
 
