@@ -83,6 +83,12 @@ module Dsl = {
     };
   let rootContext = ref ExampleGroup.empty;
   let register op => rootContext := !rootContext |> applyOperation op;
+
+  module Async = {
+    let it = it_w;
+    let describe = describe;
+    let register = register
+  }
 };
 
 module Runner = {
