@@ -14,7 +14,7 @@ async code.
 ## TODO
 
  * "Finalize" DSL for building test suites
- * Implement asynchronous matchers
+ * Determine whether or not to allow mutation of `TestContext`
 
 ## Installation
 

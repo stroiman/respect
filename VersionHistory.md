@@ -1,9 +1,14 @@
 # ReSpect Version History
 
+# Upcoming
+
+ * Implemented nicer callback for tests `don ()` or `don err::"Failed" ()`
+ * Implemented async support in assertion framework
+
 # 0.0.4
 
-* Rewrote runner engine to use continuations intenally to allow for async tests.
-* Created an `it_a` construct to create async tests.
+ * Rewrote runner engine to use continuations intenally to allow for async tests.
+ * Created an `it_a` construct to create async tests.
 
 # 0.0.3
 
