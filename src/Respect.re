@@ -109,26 +109,21 @@ module Runner = {
       switch grps {
         |[] => doRun();
         | [grp, ...parents] => { 
-        let rec runSetups setups => {
-          switch setups {
+        let rec runSetups = (fun 
             | [] => runParentGroups parents
-            | [Setup x, ...rest] =>
+            | [Setup x, ...rest] => {
             Js.log("Setup for group", grp.name);
-            x ctx (
-              fun result =>
-              switch result {
+            x ctx (fun
                 | TestFailed => callback TestFailed
                 | TestSucceeded => runSetups rest
-                }
-            )
-          }
-        };
+                )}
+        );
         runSetups grp.setups;
         }
       };
     };
     runParentGroups (groupStack |> List.rev);
-  };
+    };
 
   let rec run grp parents callback => {
     let groupStack = [grp, ...parents];
