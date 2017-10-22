@@ -19,6 +19,18 @@ describe "Runner" [
       });
     }),
 
+    it_w "Executes multiple setups before the example" (fun _ don => {
+      let lines = ref [];
+      let append line => lines := !lines @ [line];
+      let ex = anExampleGroup
+        |> withSetup (fun _ cb => { append "setup 1"; cb TestSucceeded })
+        |> withSetup (fun _ cb => { append "setup 2"; cb TestSucceeded })
+        |> withExample code::(fun _ cb => { append "test"; cb TestSucceeded });
+      run ex (fun _ => {
+        (!lines |> shoulda (equal ["setup 1", "setup 2", "test"])) don;
+      });
+    }),
+
     it_w "Executes the setup code before the example" (fun _ don => {
       let lines = ref [];
       let append line => lines := !lines @ [line];
