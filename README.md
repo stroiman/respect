@@ -16,6 +16,10 @@ async code.
  * "Finalize" DSL for building test suites.
  * Determine whether or not to allow mutation of `TestContext`.
  * Finalize assertion framework.
+ * Nicer test output when running.
+ * Nicer test output when assertions fail{...context, setups: e.
+ * Determine how to best store per-test data. Mutable context worked well in
+     FSpect, but we don't have runtime type checking in Reason/Bucklescript.
 
 Although, I had learned from many mistakes when building FSpec, there are some
 problems that demand different solutions in Reason/Bucklescript. Async support
