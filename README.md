@@ -7,19 +7,14 @@ I base this on a lot of experience I gained from a similar project for F#, FSpec
 
 This project is still in a very earyly stage, so use at your own risk.
 
-Although, I already did write an ML-ish functional test framework, some problem
-solutions do not apply in a Reason/Bucklescript context - in particular testing
-async code.
-
 ## TODO
 
  * "Finalize" DSL for building test suites.
- * Determine whether or not to allow mutation of `TestContext`.
+ * Determine whether or not to allow mutation of `TestContext`. This worked well
+     in F#/FSpec, but we don't have runtime type checking in Reason/Bucklescript.
  * Finalize assertion framework.
  * Nicer test output when running.
  * Nicer test output when assertions fail{...context, setups: e.
- * Determine how to best store per-test data. Mutable context worked well in
-     FSpect, but we don't have runtime type checking in Reason/Bucklescript.
 
 Although, I had learned from many mistakes when building FSpec, there are some
 problems that demand different solutions in Reason/Bucklescript. Async support
@@ -225,3 +220,95 @@ It will come.
 Please be aware that the matcher syntax is likely to change, but will I will try
 to keep backward compatibility by moving alternate matcher framework in separate
 modules.
+
+## Matchers
+
+The mathcers framework is based on these types:
+
+```
+type syncMatchResult 't =
+  | MatchSuccess 't
+  | MatchFailure Obj.t;
+
+type asyncMatchResult 'a = (syncMatchResult 'a => unit) => unit;
+
+exception MatchFailedException string;
+
+type matchResult 'a =
+  | SyncMatchResult (syncMatchResult 'a)
+  | AsyncMatchResult (asyncMatchResult 'a);
+
+type matcher 'a 'b = 'a => matchResult 'b;
+```
+
+So a matcher takes an actual value and returns a match result, which can be
+either synchronous, or asynchronous, in which case a callback will be called
+with the match result once it is done.
+
+So if we look at the `equal` match constructor:
+
+```
+let equal expected => fun actual =>
+  SyncMatchResult (actual == expected
+                   ? MatchSuccess actual
+                   : MatchFailure (Obj.repr expected));
+```
+
+So it takes an expected value and returns a matcher based on this.
+
+### Composing Matchers
+
+Matchers can be composed using the "fish" operator `>=>`, so a `matcher 'a 'b`
+can be composed with a `matcher 'b 'c` into a `matcher 'a 'c`.
+
+This can be particularly useful when the value passed with the success is
+different from the actual value passed to the matcher. Here is an example from a
+piece of production code I am working on:
+
+```
+/* General types to handle errors and async code */
+type result 'a 'b =
+  | Ok 'a
+  | Error 'b;
+type async 'a = ('a => unit) => unit;
+type asyncResult 'a 'b = async (result 'a 'b);
+
+/* Specific error types returned by repository layer */
+type databaseError 'id =
+| DocumentNotFound string 'id
+| MongoErr MongoError.t;
+
+/* this is a matcher that verifies that an async function fails. "actual" is a
+function that takes a result callback */
+let asyncFail actual => {
+  AsyncMatchResult (fun cb => {
+    actual
+      |> AsyncResult.run (fun
+      | Error y => cb (MatchSuccess y)
+      | Ok y => cb (MatchFailure (Obj.repr y)));
+      });
+};
+```
+
+The interesting thing is that the `asyncFail` matcher passes the error to the
+`MatchResult` constructor, to be used by a new matcher. In this tests we compose
+it with a new matcher that verifies that we actually get the expected error.
+
+```
+describe "UserRepository" [
+    describe "findById" [
+      describe "record doesn't exist" [
+        it "returns DocumentNotFound" (fun _ => {
+          let id = "dummy";
+          UserRepository.getById id
+            |> shoulda (UserFeature_test.asyncFail >=> (equal (DocumentNotFound "users" id)))
+        })
+      ]
+    ]
+  ],
+] |> register;
+```
+
+The operator supports combining sync and async matchers as you like - but they
+are not properly tested in the framework, only the above case async>=>sync
+matcher has been tested in the wild.

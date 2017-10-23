@@ -10,10 +10,37 @@ type matchResult 'a =
   | SyncMatchResult (syncMatchResult 'a)
   | AsyncMatchResult (asyncMatchResult 'a);
 
-let equal expected actual => {
-  let result = actual == expected ? MatchSuccess actual : MatchFailure (Obj.repr expected);
-  SyncMatchResult result
+type matcher 'a 'b = 'a => matchResult 'b;
+
+let (>=>) (a : matcher 'a 'b) (b : matcher 'b 'c) => {
+  let result : matcher 'a 'c = fun (x:'a) => {
+    switch (a x) {
+      | SyncMatchResult(MatchSuccess(x)) => b x
+      | SyncMatchResult(MatchFailure(x)) => SyncMatchResult(MatchFailure(x))
+      | AsyncMatchResult(x) => 
+        AsyncMatchResult(fun cb => {
+          x(fun firstResult => {
+            switch firstResult {
+              | MatchFailure x => cb (MatchFailure x)
+              | MatchSuccess x => {
+                switch (b x) {
+                  | SyncMatchResult x => cb x
+                  | AsyncMatchResult x => x cb
+                }
+              }
+            }
+          })
+        })
+    }
+  };
+  result;
 };
+
+let equal expected => fun actual =>
+  SyncMatchResult (actual == expected 
+                   ? MatchSuccess actual 
+                   : MatchFailure (Obj.repr expected));
+
 
 let should (matcher: 'a => matchResult 'b) (actual: 'a) => {
 switch (matcher actual) {
