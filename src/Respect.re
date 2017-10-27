@@ -96,6 +96,7 @@ module Dsl = {
   let (**>) (key,value) op => WrapMetadata (key, Obj.repr value) op;
 
   module Async = {
+    let (**>) = (**>);
     let it = it_w;
     let describe = describe;
     let register = register;

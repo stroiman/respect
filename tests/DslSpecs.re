@@ -37,5 +37,15 @@ describe "Dsl" [
     let expected = TestContext.ContextMap.empty
       |> TestContext.ContextMap.add "name" (Obj.repr "value");
     (grp.examples |> List.hd).metadata |> should (equal expected)
-  })
+  }),
+
+  it "Example group has metadata" (fun _ => {
+    let grp = parse(
+      ("name", "value") **>
+      describe "Group" [ beforeEach dummy ]
+    );
+    let expected = TestContext.ContextMap.empty
+      |> TestContext.ContextMap.add "name" (Obj.repr "value");
+    grp.metadata |> should (equal expected)
+  }),
 ] |> register
