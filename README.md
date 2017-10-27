@@ -3,9 +3,9 @@
 This is an RSpec inspired test framework for ReasonML/OCaml/Bucklescript. The
 runner uses raw javascript code, so it will only run in node environments at the moment.
 
-I base this on a lot of experience I gained from a similar project for F#, FSpec
+I base this on a lot of experience I gained from a similar project for F#, FSpec.
 
-This project is still in a very earyly stage, so use at your own risk.
+This project is still in a very early stage, so use at your own risk.
 
 ## TODO
 
@@ -217,13 +217,13 @@ same test :(
 
 It will come.
 
-Please be aware that the matcher syntax is likely to change, but will I will try
-to keep backward compatibility by moving alternate matcher framework in separate
+Please be aware that the matcher syntax is likely to change, but I will try
+to keep backward compatibility by moving alternate matcher framework into separate
 modules.
 
 ## Matchers
 
-The mathcers framework is based on these types:
+The matchers framework is based on these types:
 
 ```
 type syncMatchResult 't =
@@ -318,7 +318,7 @@ type databaseError 'id =
 | DocumentNotFound string 'id
 | MongoErr MongoError.t;
 
-/* this is a matcher that verifies that an async function fails. "actual" is a
+/* This is a matcher that verifies that an async function fails. "actual" is a
 function that takes a result callback */
 let asyncFail actual => {
   AsyncMatchResult (fun cb => {
@@ -350,5 +350,5 @@ describe "UserRepository" [
 ```
 
 The operator supports combining sync and async matchers as you like - but they
-are not properly tested in the framework, only the above case async>=>sync
+are not properly tested in the framework. Only the above case async>=>sync
 matcher has been tested in the wild.
