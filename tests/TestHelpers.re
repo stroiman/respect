@@ -13,6 +13,9 @@ let withAnExample = ExampleGroup.addExample;
 
 let withExampleCode f => f |> anExampleWithCode |> withAnExample;
 
+let withMetadata (name,value) grp => {...grp, metadata: grp.metadata |>
+TestContext.ContextMap.add name (value |> Obj.repr)};
+
 let withSetup code => {
   ExampleGroup.addSetup (Setup code);
 };

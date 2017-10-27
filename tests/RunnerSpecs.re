@@ -79,6 +79,23 @@ describe "Runner" [
     ]
   ],
 
+  describe "ExampleGroup has metadata" [
+    it_w "Initializes the metadata on the test context" (fun _ don => {
+      let lines = ref [];
+      let append line => lines := !lines @ [line];
+      let grp = anExampleGroup
+        |> withMetadata ("data", "value")
+        |> withExample code::(fun ctx cb => { 
+        append (ctx |> TestContext.get "data"); 
+        cb TestSucceeded 
+        });
+      run grp (fun _ => {
+        let expected = ["value"];
+        (!lines |> shoulda (equal expected)) don;
+        });
+    })
+  ],
+
   describe "example throws an exception" [
     it_w "returns an error message" (
       fun _ don => {

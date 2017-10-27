@@ -25,10 +25,12 @@ module Domain = {
     name: string,
     children: list exampleGroup,
     setups: list setup,
-    examples: list example
+    examples: list example,
+    metadata: TestContext.contextMap
   };
   module ExampleGroup = {
-    let empty = {name: "", children: [], setups: [], examples: []};
+    let empty = {name: "", children: [], setups: [], examples: [], metadata:
+      TestContext.ContextMap.empty};
     let addChild child root => {...root, children: root.children @ [child]};
     let addExample ex grp => {...grp, examples: grp.examples @ [ex]};
     let addSetup code grp => {...grp, setups: grp.setups @ [code]};
@@ -105,7 +107,7 @@ module Runner = {
       | _ => TestFailed
       };
   let runExample groupStack (ex: example) callback => {
-    let ctx = TestContext.create ();
+    let ctx = TestContext.{data: (groupStack |> List.hd).metadata};
     let doRun () =>
       ex.func ctx (fun r => {
         let str =
