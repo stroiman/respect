@@ -16,7 +16,8 @@ module Domain = {
   type testFunc = TestContext.t => executionCallback => unit;
   type example = {
     name: string,
-    func: testFunc
+    func: testFunc,
+    metadata: TestContext.contextMap
   };
   type setup =
     | Setup testFunc;
@@ -76,7 +77,8 @@ module Dsl = {
   let rec applyOperation operation context =>
     switch operation {
       | AddSetupOperation fn => context |> ExampleGroup.addSetup (Setup fn)
-      | AddExampleOperation name func => {...context, examples: [{name, func}, ...context.examples]}
+      | AddExampleOperation name func => {...context, examples: [{name, func,
+      metadata: TestContext.ContextMap.empty}, ...context.examples]}
       | AddChildGroupOperation name ops =>
       let initial = {...ExampleGroup.empty, name};
       let newChild = List.fold_left (fun grp op => applyOperation op grp) initial ops;
@@ -107,7 +109,14 @@ module Runner = {
       | _ => TestFailed
       };
   let runExample groupStack (ex: example) callback => {
-    let ctx = TestContext.{data: (groupStack |> List.hd).metadata};
+    let mdStack = groupStack |> List.map (fun x => x.metadata);
+    let mdStack' = [ex.metadata, ...mdStack];
+    let md =List.fold_left (fun md grp => TestContext.ContextMap.merge (fun _ x y => {
+      switch x { 
+        | None => y 
+        | _ => x
+        }}) md grp) TestContext.ContextMap.empty mdStack';
+    let ctx = TestContext.{data: md};
     let doRun () =>
       ex.func ctx (fun r => {
         let str =

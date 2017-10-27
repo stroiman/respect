@@ -96,6 +96,30 @@ describe "Runner" [
     })
   ],
 
+  describe "Parent group has metadata" [
+    it_w "uses the metadata closest to the example" (fun _ don => {
+      let lines = ref [];
+      let append line => lines := !lines @ [line];
+      let innerGroup = anExampleGroup
+        |> withMetadata ("data2", "inner")
+        |> withMetadata ("data3", "inner")
+        |> withExample metadata::("data3", "test") code::(fun ctx cb => { 
+        append (ctx |> TestContext.get "data1");
+        append (ctx |> TestContext.get "data2");
+        append (ctx |> TestContext.get "data3");
+        cb TestSucceeded });
+      let outerGroup = anExampleGroup
+        |> withMetadata ("data1", "outer")
+        |> withMetadata ("data2", "outer")
+        |> withMetadata ("data3", "outer")
+        |> withChildGroup innerGroup;
+      run outerGroup (fun _ => {
+        let expected = ["outer", "inner", "test"];
+        (!lines |> shoulda (equal expected)) don;
+        });
+    })
+  ],
+
   describe "example throws an exception" [
     it_w "returns an error message" (
       fun _ don => {
