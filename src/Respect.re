@@ -65,6 +65,7 @@ module Dsl = {
             }
         );
   type operation =
+    | WrapMetadata (string, Obj.t) operation
     | AddChildGroupOperation string (list operation)
     | AddExampleOperation string testFunc
     | AddSetupOperation testFunc;
@@ -74,14 +75,14 @@ module Dsl = {
   let describe name ops => AddChildGroupOperation name ops;
   let beforeEach fn => AddSetupOperation (wrapTest fn);
   let beforeEach_w fn => AddSetupOperation (wrapW fn);
-  let rec applyOperation operation context =>
+  let rec applyOperation operation context metadata =>
     switch operation {
+      | WrapMetadata (key,value) op => applyOperation op context (metadata |> TestContext.ContextMap.add key value)
       | AddSetupOperation fn => context |> ExampleGroup.addSetup (Setup fn)
-      | AddExampleOperation name func => {...context, examples: [{name, func,
-      metadata: TestContext.ContextMap.empty}, ...context.examples]}
+      | AddExampleOperation name func => {...context, examples: [{name, func, metadata}, ...context.examples]}
       | AddChildGroupOperation name ops =>
-      let initial = {...ExampleGroup.empty, name};
-      let newChild = List.fold_left (fun grp op => applyOperation op grp) initial ops;
+      let initial = {...ExampleGroup.empty, name, metadata};
+      let newChild = List.fold_left (fun grp op => applyOperation op grp TestContext.ContextMap.empty) initial ops;
       let newChild' = {
         ...newChild,
           children: newChild.children |> List.rev,
@@ -89,8 +90,10 @@ module Dsl = {
           };
       {...context, children: [newChild', ...context.children]}
     };
+  let applyOperation operation context => applyOperation operation context TestContext.ContextMap.empty;
   let rootContext = ref ExampleGroup.empty;
   let register op => rootContext := !rootContext |> applyOperation op;
+  let (**>) (key,value) op => WrapMetadata (key, Obj.repr value) op;
 
   module Async = {
     let it = it_w;
