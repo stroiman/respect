@@ -1,16 +1,20 @@
 # ReSpect Version History
 
-# Upcoming
+## 0.0.6
+
+ * Added test metadata support
+
+## 0.0.5
 
  * Implemented nicer callback for tests `don ()` or `don err::"Failed" ()`
  * Created `Respect.Dsl.Async` module to have nice naming for async test suites.
  * Implemented async support in assertion framework.
 
-# 0.0.4
+## 0.0.4
 
  * Rewrote runner engine to use continuations intenally to allow for async tests.
  * Created an `it_a` construct to create async tests.
 
-# 0.0.3
+## 0.0.3
 
 First version with a test runner that was able to execute tests

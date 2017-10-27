@@ -256,6 +256,46 @@ let equal expected => fun actual =>
 
 So it takes an expected value and returns a matcher based on this.
 
+## Test Metadata
+
+You can add metadata to a group or an example. And if you have metadata on a
+parent group, you can override it in a child group. The metadata is added using
+the strange looking _**>_ operator (I chose this because the _*_ makes it right
+associative, which I need in order to avoid parenthesis hell, and the _>_ helps
+indicating that the metadata binds to the group/example to come.
+
+The interesting thing is that the metadata is initialized before the example
+starts executing, which means that metadata specified on an example can effect
+the setup code executed in a parent group. The following example shows how:
+
+```
+open Respect.Dsl.Async;
+
+describe "Register user" [
+  beforeEach (fun ctx don => {
+    ctx |> TestContext.get "userName"
+    |> /* do something interesting with the user */
+    don()
+  }),
+
+  ("userName", "johndoe") **>
+  describe "A valid user name was entered" [
+    it "Correctly registers the user" (fun ctx don => {
+       ...
+       don
+    })
+  ],
+
+  ("userName", "!@#$") **>
+  describe "An invalid user name was entered" [
+    it "Returns a sensible error message" (fun ctx don => {
+       ...
+       don ()
+    })
+  ]
+] |> register
+```
+
 ### Composing Matchers
 
 Matchers can be composed using the "fish" operator `>=>`, so a `matcher 'a 'b`
