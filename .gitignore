@@ -19,7 +19,7 @@
 *.cmj
 *.bak
 lib/bs
-lib/js
+lib/ocaml
 *.mlast
 *.mliast
 .vscode
@@ -27,4 +27,3 @@ lib/js
 node_modules
 package-lock.json
 *.log
-lib
