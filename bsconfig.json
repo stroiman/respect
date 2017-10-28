@@ -1,5 +1,6 @@
 {
   "name": "re-respect",
+  "refmt": 3,
   "sources": [
     {"dir": "bin"},
     {"dir": "src"},

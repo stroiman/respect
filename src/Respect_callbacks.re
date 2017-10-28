@@ -1,1 +1,1 @@
-type doneCallback = err::string? => unit => unit;
+type doneCallback = (~err: string=?, unit) => unit;
