@@ -23,48 +23,19 @@ describe(
             let append = (line) => lines := lines^ @ [line];
             let ex =
               anExampleGroup
-              |> withSetup(
-                   (_, cb) => {
-                     append("setup");
-                     cb(TestFailed)
-                   }
-                 )
-              |> withExample(
-                   ~code=
-                     (_, cb) => {
-                       append("test");
-                       cb(TestSucceeded)
-                     }
-                 );
+              |> withSetup( (_, cb) => { append("setup"); cb(TestFailed) })
+              |> withExample( ~code= (_, cb) => { append("test"); cb(TestSucceeded) });
             run(ex, (_) => (lines^ |> shoulda(equal(["setup"])))(don))
           }
         ),
-        it_w(
-          "Executes multiple setups before the example",
-          (_, don) => {
+        it_w( "Executes multiple setups before the example", (_, don) => {
             let lines = ref([]);
             let append = (line) => lines := lines^ @ [line];
             let ex =
               anExampleGroup
-              |> withSetup(
-                   (_, cb) => {
-                     append("setup 1");
-                     cb(TestSucceeded)
-                   }
-                 )
-              |> withSetup(
-                   (_, cb) => {
-                     append("setup 2");
-                     cb(TestSucceeded)
-                   }
-                 )
-              |> withExample(
-                   ~code=
-                     (_, cb) => {
-                       append("test");
-                       cb(TestSucceeded)
-                     }
-                 );
+              |> withSetup( (_, cb) => { append("setup 1"); cb(TestSucceeded) })
+              |> withSetup( (_, cb) => { append("setup 2"); cb(TestSucceeded) })
+              |> withExample( ~code= (_, cb) => { append("test"); cb(TestSucceeded) });
             run(ex, (_) => (lines^ |> shoulda(equal(["setup 1", "setup 2", "test"])))(don))
           }
         ),
