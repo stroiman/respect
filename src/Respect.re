@@ -30,13 +30,7 @@ module Domain = {
     metadata: TestContext.contextMap
   };
   module ExampleGroup = {
-    let empty = {
-      name: "",
-      children: [],
-      setups: [],
-      examples: [],
-      metadata: TestContext.ContextMap.empty
-    };
+    let empty = {name: "", children: [], setups: [], examples: [], metadata: TestContext.ContextMap.empty};
     let addChild = (child, root) => {...root, children: root.children @ [child]};
     let addExample = (ex, grp) => {...grp, examples: grp.examples @ [ex]};
     let addSetup = (code, grp) => {...grp, setups: grp.setups @ [code]};
@@ -81,30 +75,16 @@ module Dsl = {
   let beforeEach_w = (fn) => AddSetupOperation(wrapW(fn));
   let rec applyOperation = (operation, context, metadata) =>
     switch operation {
-    | WrapMetadata((key, value), op) =>
-      applyOperation(op, context, metadata |> TestContext.ContextMap.add(key, value))
+    | WrapMetadata((key, value), op) => applyOperation(op, context, metadata |> TestContext.ContextMap.add(key, value))
     | AddSetupOperation(fn) => context |> ExampleGroup.addSetup(Setup(fn))
-    | AddExampleOperation(name, func) => {
-        ...context,
-        examples: [{name, func, metadata}, ...context.examples]
-      }
+    | AddExampleOperation(name, func) => {...context, examples: [{name, func, metadata}, ...context.examples]}
     | AddChildGroupOperation(name, ops) =>
       let initial = {...ExampleGroup.empty, name, metadata};
-      let newChild =
-        List.fold_left(
-          (grp, op) => applyOperation(op, grp, TestContext.ContextMap.empty),
-          initial,
-          ops
-        );
-      let newChild' = {
-        ...newChild,
-        children: newChild.children |> List.rev,
-        examples: newChild.examples |> List.rev
-      };
+      let newChild = List.fold_left((grp, op) => applyOperation(op, grp, TestContext.ContextMap.empty), initial, ops);
+      let newChild' = {...newChild, children: newChild.children |> List.rev, examples: newChild.examples |> List.rev};
       {...context, children: [newChild', ...context.children]}
     };
-  let applyOperation = (operation, context) =>
-    applyOperation(operation, context, TestContext.ContextMap.empty);
+  let applyOperation = (operation, context) => applyOperation(operation, context, TestContext.ContextMap.empty);
   let rootContext = ref(ExampleGroup.empty);
   let register = (op) => rootContext := rootContext^ |> applyOperation(op);
   let ( **> ) = ((key, value), op) => WrapMetadata((key, Obj.repr(value)), op);
@@ -126,24 +106,13 @@ module Runner = {
     | _ => TestFailed
     };
   let runExample = (groupStack, ex: example, callback) => {
-    let mdStack = groupStack |> List.map((x) => x.metadata);
-    let mdStack' = [ex.metadata, ...mdStack];
-    let md =
-      List.fold_left(
-        (md, grp) =>
-          TestContext.ContextMap.merge(
-            (_, x, y) =>
-              switch x {
-              | None => y
-              | _ => x
-              },
-            md,
-            grp
-          ),
-        TestContext.ContextMap.empty,
-        mdStack'
-      );
-    let ctx = TestContext.{data: md};
+    let ctx = {
+      let mdStack = groupStack |> List.map((x) => x.metadata);
+      let mdStack' = [ex.metadata, ...mdStack];
+      let md =
+        List.fold_left(TestContext.ContextMap.merge, TestContext.ContextMap.empty, mdStack');
+      TestContext.{data: md}
+    };
     let doRun = () =>
       ex.func(
         ctx,
@@ -184,20 +153,14 @@ module Runner = {
     let rec iter = (state, tests, callback) =>
       switch tests {
       | [] => callback(state)
-      | [ex, ...rest] =>
-        runExample(groupStack, ex, (result) => iter(mergeResult(result, state), rest, callback))
+      | [ex, ...rest] => runExample(groupStack, ex, (result) => iter(mergeResult(result, state), rest, callback))
       };
     let rec iterGrps = (state, grps, callback) =>
       switch grps {
       | [] => callback(state)
-      | [grp, ...rest] =>
-        run(grp, groupStack, (result) => iterGrps(mergeResult(result, state), rest, callback))
+      | [grp, ...rest] => run(grp, groupStack, (result) => iterGrps(mergeResult(result, state), rest, callback))
       };
-    iter(
-      TestSucceeded,
-      grp.examples,
-      (exampleResults) => iterGrps(exampleResults, grp.children, (x) => callback(x))
-    )
+    iter(TestSucceeded, grp.examples, (exampleResults) => iterGrps(exampleResults, grp.children, (x) => callback(x)))
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in

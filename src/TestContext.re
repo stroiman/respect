@@ -1,4 +1,16 @@
-module ContextMap = Map.Make(String);
+module ContextMap = {
+  include Map.Make(String);
+  let merge = (a, b) =>
+    merge(
+      (_, x, y) =>
+        switch x {
+        | None => y
+        | _ => x
+        },
+      a,
+      b
+    );
+};
 
 type contextMap = ContextMap.t(Obj.t);
 
