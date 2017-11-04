@@ -117,12 +117,12 @@ module Runner = {
       ex.func(
         ctx,
         (r) => {
-          let str =
-            switch r {
-            | TestSucceeded => "SUCCESS"
-            | TestFailed => "FAILED"
-            };
-          Js.log("EXAMPLE: " ++ (ex.name ++ (" - " ++ str)));
+          if (r == TestFailed) {
+            let groupNames = List.fold_left (((acc, grp) =>
+                if (grp.name == "") { acc } else {
+            grp.name ++ " - " ++ acc}), "", groupStack);
+            Js.log("EXAMPLE: " ++ groupNames ++ (ex.name ++ " - FAILED"));
+          };
           callback(r)
         }
       );
@@ -134,7 +134,6 @@ module Runner = {
           fun
           | [] => runParentGroups(parents)
           | [Setup(x), ...rest] => {
-              Js.log(("Setup for group", grp.name));
               x(
                 ctx,
                 fun
@@ -149,7 +148,6 @@ module Runner = {
   };
   let rec run = (grp, parents, callback) => {
     let groupStack = [grp, ...parents];
-    Js.log("Entering context " ++ grp.name);
     let rec iter = (state, tests, callback) =>
       switch tests {
       | [] => callback(state)
