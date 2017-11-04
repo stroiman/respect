@@ -14,7 +14,8 @@ This project is still in a very early stage, so use at your own risk.
      in F#/FSpec, but we don't have runtime type checking in Reason/Bucklescript.
  * Finalize assertion framework.
  * Nicer test output when running.
- * Nicer test output when assertions fail{...context, setups: e.
+ * Nicer test output when assertions fail.
+ * Internally, figure out how to report progresss.
 
 Although, I had learned from many mistakes when building FSpec, there are some
 problems that demand different solutions in Reason/Bucklescript. Async support
