@@ -27,3 +27,4 @@ lib/ocaml
 node_modules
 package-lock.json
 *.log
+.bsb.lock
