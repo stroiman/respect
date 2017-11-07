@@ -1,4 +1,5 @@
 module Matcher = Respect_matcher;
+module MatchersV2 = Respect_matchersV2;
 
 module Callbacks = Respect_callbacks;
 
