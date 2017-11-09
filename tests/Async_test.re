@@ -77,6 +77,22 @@ describe("Async module", [
     })
   ]),
 
+  describe("Timeout", [
+    it("fails when timeout exceeded", (_) => {
+      let after = ((cb,_)) => Js.Global.setTimeout(() => cb(42), 5) |> ignore;
+      after
+        |> Async.timeout(MilliSeconds(1))
+        |> shoulda(asyncThrow >=> equal(Async.Timeout));
+    }),
+
+    it("Succeeds when timeout not exceeded", (_) => {
+      let after = ((cb,_)) => Js.Global.setTimeout(() => cb(42), 1) |> ignore;
+      after
+        |> Async.timeout(MilliSeconds(5))
+        |> shoulda(asyncResolve >=> equal(42));
+    })
+  ]),
+
   describe("mapping from async js functions", [
     /* It is a common JS pattern to let functions take a callback
        that should accept two arguments, the first being an error, 
