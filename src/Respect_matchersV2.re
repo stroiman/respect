@@ -4,22 +4,7 @@ type matchResult('a) =
   | MatchSuccess('a)
   | MatchFailure(Obj.t);
 
-type async('a) = (('a => unit, exn => unit)) => unit;
-
-module Async = {
-  type t('a) = async('a);
-  let return = (x:'a) : t('a) => ((cb,_)) => cb(x);
-  let bind = (~f:'a=>t('b),~x:t('a)):t('b) => callbacks => {
-    let errorCB = callbacks |> snd;
-    switch( x((a => f(a)(callbacks),errorCB))) 
-    {
-      | () => ()
-      | exception x => errorCB(x)
-    }
-  };
-  let run = (f,x) => x((f,(_) => {()}));
-  let runExn = (~fs,~fe,x) => (x((fs,fe)));
-};
+type async('a) = Async.t('a);
 
 type matcher('a,'b) = {.
   f: 'a => async(matchResult('b))

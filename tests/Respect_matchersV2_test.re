@@ -1,24 +1,6 @@
 open Respect.Dsl.Async;
 open Respect.MatchersV2;
-open Respect_callbacks;
-
-let shouldMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
-  fn(fun (~err=?,()) => {
-    switch(err) {
-      | None => don();
-      | Some(x) => don(~err=x,());
-    }
-  })
-};
-
-let shouldNotMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
-  fn(fun (~err=?,()) => {
-    switch(err) {
-      | None => don(~err="Expected match error, but none was received",());
-      | Some(_) => don();
-    }
-  })
-};
+open TestHelpers.MatchHelper;
 
 describe("MatchersV2", [
   describe("equal", [

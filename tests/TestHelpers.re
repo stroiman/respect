@@ -37,3 +37,23 @@ let withExample = (~metadata=?, ~name="Dummy example", ~code=passingExampleCode,
   let ex: example = {name, func: code, metadata: md};
   grp |> ExampleGroup.addExample(ex)
 };
+
+module MatchHelper = {
+let shouldMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
+  fn(fun (~err=?,()) => {
+    switch(err) {
+      | None => don();
+      | Some(x) => don(~err=x,());
+    }
+  })
+};
+
+let shouldNotMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
+  fn(fun (~err=?,()) => {
+    switch(err) {
+      | None => don(~err="Expected match error, but none was received",());
+      | Some(_) => don();
+    }
+  })
+};
+}
