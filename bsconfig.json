@@ -10,6 +10,6 @@
     }
   ],
   "bs-dependencies" : [
-      // add your bs-dependencies here 
+    "re-sync"
   ]
 }
