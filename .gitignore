@@ -28,3 +28,7 @@ node_modules
 package-lock.json
 *.log
 .bsb.lock
+
+# This folder contains some custom .js files to simulate binding to
+# bs modules with async functions
+!lib/node_modules
