@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+## 0.0.7
+
+ * Only show failed tests in the console
+
 ## 0.0.6
 
  * Added test metadata support

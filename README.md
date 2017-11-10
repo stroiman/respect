@@ -17,6 +17,7 @@ This project is still in a very early stage, so use at your own risk.
  * Nicer test output when assertions fail.
  * Internally, figure out how to report progresss.
  * More flexible runner, e.g. configurable location of test files
+ * Handle async timeout to avoid hanging when async tests don't call back
 
 Although, I had learned from many mistakes when building FSpec, there are some
 problems that demand different solutions in Reason/Bucklescript. Async support
