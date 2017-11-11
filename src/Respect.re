@@ -149,26 +149,26 @@ module Runner = {
       };
     runParentGroups(groupStack |> List.rev)
   };
-  let rec run = (grp, parents, callback) => {
+  let rec run = (grp, parents) : As.t(executionResult) => {
     let groupStack = [grp, ...parents];
-    let rec iter = (state, tests, callback) =>
+    let rec iter = (state, tests) : As.t(executionResult) =>
       switch tests {
-      | [] => callback(state)
-      | [ex, ...rest] => runExample(groupStack, ex, (result) => iter(mergeResult(result, state), rest, callback))
+      | [] => As.return(state)
+      | [ex, ...rest] => runExample(groupStack, ex) |> As.from_callback |> As.bind(~f=result => iter(mergeResult(result, state), rest))
       };
-    let rec iterGrps = (state, grps, callback) =>
+    let rec iterGrps = (state, grps) : As.t(executionResult) =>
       switch grps {
-      | [] => callback(state)
-      | [grp, ...rest] => run(grp, groupStack, (result) => iterGrps(mergeResult(result, state), rest, callback))
+      | [] => As.return(state)
+      | [grp, ...rest] => run(grp, groupStack) |> As.bind(~f=(result) => iterGrps(mergeResult(result, state), rest))
       };
-    iter(TestSucceeded, grp.examples, (exampleResults) => iterGrps(exampleResults, grp.children, (x) => callback(x)))
+    iter(TestSucceeded, grp.examples) |> As.bind(~f=(exampleResults) => iterGrps(exampleResults, grp.children))
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
      parents */
-  let run = (grp, callback) => run(grp, [], callback);
+  let run = (grp) : As.t(executionResult) => run(grp, []);
   /* Runs all tests registered in the root example group */
-  let runRoot = () :As.t(executionResult) => run(rootContext^) |> As.from_callback;
+  let runRoot = () : As.t(executionResult) => run(rootContext^);
 };
 
 module TestResult = {
