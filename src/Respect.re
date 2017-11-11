@@ -3,6 +3,8 @@ module MatchersV2 = Respect_matchersV2;
 
 module Callbacks = Respect_callbacks;
 
+module As = Async;
+
 /*
    Module Domain describes the internal structure that represents examples
    and groups of examples.
@@ -166,7 +168,7 @@ module Runner = {
      parents */
   let run = (grp, callback) => run(grp, [], callback);
   /* Runs all tests registered in the root example group */
-  let runRoot = (callback) => run(rootContext^, (x) => callback(x));
+  let runRoot = () :As.t(executionResult) => run(rootContext^) |> As.from_callback;
 };
 
 module TestResult = {
