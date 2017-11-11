@@ -17,7 +17,8 @@ This project is still in a very early stage, so use at your own risk.
  * Nicer test output when assertions fail.
  * Internally, figure out how to report progresss.
  * More flexible runner, e.g. configurable location of test files
- * Handle async timeout to avoid hanging when async tests don't call back
+ * ✓ Handle async timeout to avoid hanging when async tests don't call back
+ * Make timeout configurable through example metadata.
 
 Although, I had learned from many mistakes when building FSpec, there are some
 problems that demand different solutions in Reason/Bucklescript. Async support
@@ -157,15 +158,10 @@ context to a root context.
 
 ## Async tests
 
-The framework supports async tests through callbacks, but be aware of:
-
- * There is no timeout, so if you don't get to call the callback, the test suite
-     will hang (luckily _nodemon_ happily kills the process on file changes).
- * The callback triggers running the rest of the test suite, so don't call it
-     multiple times, or you will cause the rest of the suite to run multiple
-     times, probably with simultaneously running tests.
-
 Async support is currently best implemented by opening `Respect.Dsl.Async`.
+
+I believe that this will be in time be the the only "official" Dsl to end with,
+but maybe with helper functions to write sync examples if you need to.
 
 ```
 open Respect.Dsl.Async;

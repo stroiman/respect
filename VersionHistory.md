@@ -3,6 +3,7 @@
 ## 0.0.7
 
  * Only show failed tests in the console
+ * Added a 1 second timout for examples (not yet configurable)
 
 ## 0.0.6
 
