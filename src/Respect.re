@@ -127,10 +127,8 @@ module Runner = {
       r;
     };
 
-    let doRun = () =>
-      ex.func(ctx)
-        |> As.from_callback
-        |> As.map(~f=logError);
+    let doRun = () => ex.func(ctx) |> As.from_callback;
+
     let rec runParentGroups = (grps) : As.t(executionResult) =>
       switch grps {
       | [] => doRun()
@@ -148,6 +146,9 @@ module Runner = {
         runSetups(grp.setups)
       };
     runParentGroups(groupStack |> List.rev)
+      |> As.timeout(As.Seconds(1))
+      |> As.catch(~f=(_) => Some(TestFailed))
+      |> As.map(~f=logError);
   };
   let rec run = (grp, parents) : As.t(executionResult) => {
     let groupStack = [grp, ...parents];
