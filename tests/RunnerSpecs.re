@@ -1,3 +1,5 @@
+module As = Async;
+
 open Respect.Dsl;
 
 open Respect.Domain;
@@ -9,6 +11,8 @@ open Respect.Matcher;
 open TestHelpers;
 
 exception TestFailed(string);
+
+let run = (ex, cb) => run(ex) |> As.run(cb);
 
 describe(
   "Runner",

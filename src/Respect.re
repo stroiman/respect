@@ -3,6 +3,8 @@ module MatchersV2 = Respect_matchersV2;
 
 module Callbacks = Respect_callbacks;
 
+module As = Async;
+
 /*
    Module Domain describes the internal structure that represents examples
    and groups of examples.
@@ -106,7 +108,7 @@ module Runner = {
     | (TestSucceeded, TestSucceeded) => TestSucceeded
     | _ => TestFailed
     };
-  let runExample = (groupStack, ex: example, callback) => {
+  let runExample = (groupStack, ex: example) : As.t(executionResult) => {
     let ctx = {
       let mdStack = groupStack |> List.map((x) => x.metadata);
       let mdStack' = [ex.metadata, ...mdStack];
@@ -114,59 +116,60 @@ module Runner = {
         List.fold_left(TestContext.ContextMap.merge, TestContext.ContextMap.empty, mdStack');
       TestContext.{data: md}
     };
-    let doRun = () =>
-      ex.func(
-        ctx,
-        (r) => {
-          if (r == TestFailed) {
-            let groupNames = List.fold_left (((acc, grp) =>
-                if (grp.name == "") { acc } else {
-            grp.name ++ " - " ++ acc}), "", groupStack);
-            Js.log("EXAMPLE: " ++ groupNames ++ (ex.name ++ " - FAILED"));
-          };
-          callback(r)
-        }
-      );
-    let rec runParentGroups = (grps) =>
+
+    let logError = r => {
+      if (r == TestFailed) {
+        let groupNames = List.fold_left (((acc, grp) =>
+          if (grp.name == "") { acc } else {
+        grp.name ++ " - " ++ acc}), "", groupStack);
+          Js.log("EXAMPLE: " ++ groupNames ++ (ex.name ++ " - FAILED"));
+        };
+      r;
+    };
+
+    let doRun = () => ex.func(ctx) |> As.from_callback;
+
+    let rec runParentGroups = (grps) : As.t(executionResult) =>
       switch grps {
       | [] => doRun()
       | [grp, ...parents] =>
-        let rec runSetups = (
-          fun
+        let rec runSetups = (setups) : As.t(executionResult) => 
+          switch(setups) {
           | [] => runParentGroups(parents)
-          | [Setup(x), ...rest] => {
-              x(
-                ctx,
-                fun
-                | TestFailed => callback(TestFailed)
+          | [Setup(x), ...rest] => 
+              x(ctx) |> As.from_callback |> As.bind(
+                ~f=fun
+                | TestFailed => As.return(TestFailed)
                 | TestSucceeded => runSetups(rest)
               )
-            }
-        );
+          };
         runSetups(grp.setups)
       };
     runParentGroups(groupStack |> List.rev)
+      |> As.timeout(As.Seconds(1))
+      |> As.catch(~f=(_) => Some(TestFailed))
+      |> As.map(~f=logError);
   };
-  let rec run = (grp, parents, callback) => {
+  let rec run = (grp, parents) : As.t(executionResult) => {
     let groupStack = [grp, ...parents];
-    let rec iter = (state, tests, callback) =>
+    let rec iter = (state, tests) : As.t(executionResult) =>
       switch tests {
-      | [] => callback(state)
-      | [ex, ...rest] => runExample(groupStack, ex, (result) => iter(mergeResult(result, state), rest, callback))
+      | [] => As.return(state)
+      | [ex, ...rest] => runExample(groupStack, ex) |> As.bind(~f=result => iter(mergeResult(result, state), rest))
       };
-    let rec iterGrps = (state, grps, callback) =>
+    let rec iterGrps = (state, grps) : As.t(executionResult) =>
       switch grps {
-      | [] => callback(state)
-      | [grp, ...rest] => run(grp, groupStack, (result) => iterGrps(mergeResult(result, state), rest, callback))
+      | [] => As.return(state)
+      | [grp, ...rest] => run(grp, groupStack) |> As.bind(~f=(result) => iterGrps(mergeResult(result, state), rest))
       };
-    iter(TestSucceeded, grp.examples, (exampleResults) => iterGrps(exampleResults, grp.children, (x) => callback(x)))
+    iter(TestSucceeded, grp.examples) |> As.bind(~f=(exampleResults) => iterGrps(exampleResults, grp.children))
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
      parents */
-  let run = (grp, callback) => run(grp, [], callback);
+  let run = (grp) : As.t(executionResult) => run(grp, []);
   /* Runs all tests registered in the root example group */
-  let runRoot = (callback) => run(rootContext^, (x) => callback(x));
+  let runRoot = () : As.t(executionResult) => run(rootContext^);
 };
 
 module TestResult = {
