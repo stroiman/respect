@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const glob = require('glob');
 const path = require('path');
-const runner = require('../lib/js/src/respect_clihelper');
+const runner = require('../lib/js/src/Respect_clihelper');
 
 const files = glob.sync("lib/js/tests/*.js");
 
