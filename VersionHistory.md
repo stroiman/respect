@@ -1,9 +1,10 @@
 # ReSpect Version History
 
-## 0.0.7
+## 0.0.8
 
  * Only show failed tests in the console
  * Added a 1 second timout for examples (not yet configurable)
+ * Bugfix: Test runniner wasn't working on case sensitive file system
 
 ## 0.0.6
 
