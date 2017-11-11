@@ -116,19 +116,21 @@ module Runner = {
         List.fold_left(TestContext.ContextMap.merge, TestContext.ContextMap.empty, mdStack');
       TestContext.{data: md}
     };
+
+    let logError = r => {
+      if (r == TestFailed) {
+        let groupNames = List.fold_left (((acc, grp) =>
+          if (grp.name == "") { acc } else {
+        grp.name ++ " - " ++ acc}), "", groupStack);
+          Js.log("EXAMPLE: " ++ groupNames ++ (ex.name ++ " - FAILED"));
+        };
+      r;
+    };
+
     let doRun = () =>
       ex.func(ctx)
         |> As.from_callback
-        |> As.map(
-        ~f=(r) => {
-          if (r == TestFailed) {
-            let groupNames = List.fold_left (((acc, grp) =>
-                if (grp.name == "") { acc } else {
-            grp.name ++ " - " ++ acc}), "", groupStack);
-            Js.log("EXAMPLE: " ++ groupNames ++ (ex.name ++ " - FAILED"));
-          };
-          r;
-        });
+        |> As.map(~f=logError);
     let rec runParentGroups = (grps) : As.t(executionResult) =>
       switch grps {
       | [] => doRun()
@@ -136,13 +138,12 @@ module Runner = {
         let rec runSetups = (setups) : As.t(executionResult) => 
           switch(setups) {
           | [] => runParentGroups(parents)
-          | [Setup(x), ...rest] => {
+          | [Setup(x), ...rest] => 
               x(ctx) |> As.from_callback |> As.bind(
                 ~f=fun
                 | TestFailed => As.return(TestFailed)
                 | TestSucceeded => runSetups(rest)
               )
-            }
           };
         runSetups(grp.setups)
       };
