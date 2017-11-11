@@ -6,7 +6,8 @@
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
     "test:watch": "nodemon bin/respect",
-    "test": "node bin/respect",
+    "test:run": "node bin/respect",
+    "test": "run-s build test:run",
     "dev": "run-p watch test:watch"
   },
   "bin": {
