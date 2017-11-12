@@ -119,7 +119,7 @@ module Runner = {
       let mdStack' = [ex.metadata, ...mdStack];
       let md =
         List.fold_left(TestContext.ContextMap.merge, TestContext.ContextMap.empty, mdStack');
-      TestContext.{data: md}
+      TestContext.create(md);
     };
 
     let logError = r => {
