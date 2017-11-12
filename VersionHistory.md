@@ -10,6 +10,11 @@
 
  * Support for pending tests
 
+## 0.0.9
+
+ * Removed dependency to 're-sync' npm package. This caused cyclic deps
+     when building 're-sync'
+
 ## 0.0.8
 
  * Only show failed tests in the console
