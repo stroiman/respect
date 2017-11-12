@@ -3,7 +3,7 @@ module MatchersV2 = Respect_matchersV2;
 
 module Callbacks = Respect_callbacks;
 
-module As = Async;
+module As = Respect_async;
 
 /*
    Module Domain describes the internal structure that represents examples
@@ -147,7 +147,7 @@ module Runner = {
       };
     runParentGroups(groupStack |> List.rev)
       |> As.timeout(As.Seconds(1))
-      |> As.catch(~f=(_) => Some(TestFailed))
+      |> As.tryCatch(~f=(_) => Some(TestFailed))
       |> As.map(~f=logError);
   };
   let rec run = (grp, parents) : As.t(executionResult) => {

@@ -10,6 +10,5 @@
     }
   ],
   "bs-dependencies" : [
-    "re-sync"
   ]
 }

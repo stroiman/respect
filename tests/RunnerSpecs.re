@@ -1,4 +1,4 @@
-module As = Async;
+module As = Respect_async;
 
 open Respect.Dsl;
 
