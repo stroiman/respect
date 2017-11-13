@@ -12,6 +12,7 @@ module As = Respect_async;
 module Domain = {
   /* Represents the outcome of running a test */
   type executionResult =
+    | TestPending
     | TestSucceeded
     | TestFailed;
   type executionCallback = executionResult => unit;
@@ -97,6 +98,7 @@ module Dsl = {
     let describe = describe;
     let register = register;
     let beforeEach = beforeEach_w;
+    let pending = name => AddExampleOperation(name, (_,cb) => cb(TestPending));
   };
 };
 
@@ -105,8 +107,11 @@ module Runner = {
   open Dsl;
   let mergeResult = (a, b) =>
     switch (a, b) {
+    | (TestFailed, _) => TestFailed
+    | (_, TestFailed) => TestFailed
+    | (TestPending, _) => TestPending
+    | (_, TestPending) => TestPending
     | (TestSucceeded, TestSucceeded) => TestSucceeded
-    | _ => TestFailed
     };
   let runExample = (groupStack, ex: example) : As.t(executionResult) => {
     let ctx = {
@@ -118,6 +123,12 @@ module Runner = {
     };
 
     let logError = r => {
+      if (r == TestPending) {
+        let groupNames = List.fold_left (((acc, grp) =>
+          if (grp.name == "") { acc } else {
+        grp.name ++ " - " ++ acc}), "", groupStack);
+          Js.log("EXAMPLE: " ++ groupNames ++ (ex.name ++ " - PENDING"));
+        };
       if (r == TestFailed) {
         let groupNames = List.fold_left (((acc, grp) =>
           if (grp.name == "") { acc } else {
@@ -140,6 +151,7 @@ module Runner = {
               x(ctx) |> As.from_callback |> As.bind(
                 ~f=fun
                 | TestFailed => As.return(TestFailed)
+                | TestPending => As.return(TestPending)
                 | TestSucceeded => runSetups(rest)
               )
           };
@@ -177,6 +189,7 @@ module TestResult = {
   let isSuccess = (result) =>
     switch result {
     | TestSucceeded => true
+    | TestPending => true
     | TestFailed => false
     };
 };

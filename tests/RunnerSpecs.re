@@ -4,11 +4,35 @@ open Respect.Domain;
 open Respect.Runner;
 open Respect.Matcher;
 open TestHelpers;
-exception TestFailed(string);
+open TestHelpers.AsyncMatchers;
+exception MockFailure(string);
 
+let orgRun = run;
 let run = (ex, cb) => run(ex) |> As.run(cb);
 
 describe("Runner", [
+  describe("Test Result", [
+    it("Is success when all tests succeed", (_) => {
+      let ex = anExampleGroup
+        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) })
+        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) });
+      orgRun(ex) |> shoulda(asyncResolve >=> equal(TestSucceeded))
+    }),
+    it("Is pending when one test is pending", (_) => {
+      let ex = anExampleGroup
+        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) })
+        |> withExample( ~code = (_,cb) => { cb(TestPending) });
+      orgRun(ex) |> shoulda(asyncResolve >=> equal(TestPending))
+    }),
+    it("Is a failure when one test is pending", (_) => {
+      let ex = anExampleGroup
+        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) })
+        |> withExample( ~code = (_,cb) => { cb(TestPending) })
+        |> withExample( ~code = (_,cb) => { cb(TestFailed) });
+      orgRun(ex) |> shoulda(asyncResolve >=> equal(TestFailed))
+    })
+  ]),
+
   describe("Group has a setup", [
     it("Doesn't execute example code when setup code fails", (_, don) => {
       let lines = ref([]);
@@ -18,8 +42,7 @@ describe("Runner", [
           |> withSetup( (_, cb) => { append("setup"); cb(TestFailed) })
           |> withExample( ~code= (_, cb) => { append("test"); cb(TestSucceeded) });
           run(ex, (_) => (lines^ |> shoulda(equal(["setup"])))(don))
-          }
-    ),
+    }),
     it("Executes multiple setups before the example", (_, don) => {
       let lines = ref([]);
       let append = (line) => lines := lines^ @ [line];
@@ -197,7 +220,7 @@ describe("Runner", [
 ]),
   describe("example throws an exception", [
     it("returns an error message", (_, don) => {
-      let ex = anExampleGroup |> withExampleCode((_) => raise(TestFailed("")));
+      let ex = anExampleGroup |> withExampleCode((_) => raise(MockFailure("")));
       run(
         ex,
         fun

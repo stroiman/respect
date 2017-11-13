@@ -56,4 +56,28 @@ let shouldNotMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
     }
   })
 };
+};
+
+module AsyncMatchers = {
+  module Async = Respect_async;
+  open Respect.Matcher;
+
+  let asyncResolve = (actual:Async.t('a)) => {
+    let result = cb => {
+      let successCb = x => cb(MatchSuccess(x));
+      let exnCb = x => cb(MatchFailure(x |> Obj.repr));
+      actual |> Async.runExn(~fs=successCb,~fe=exnCb)
+      };
+    AsyncMatchResult(result);
+  };
+
+  let asyncThrow = (actual:Async.t('a)) => {
+    let result = cb => {
+      let successCb = x => cb(MatchFailure(x |> Obj.repr));
+      let exnCb = x => cb(MatchSuccess(x));
+      actual |> Async.runExn(~fs=successCb,~fe=exnCb)
+      };
+    AsyncMatchResult(result);
+  };
+
 }
