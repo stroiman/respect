@@ -1,5 +1,7 @@
 # ReSpect
 
+[![Build Status](https://travis-ci.org/PeteProgrammer/respect.svg?branch=master)](https://travis-ci.org/PeteProgrammer/respect)
+
 This is an RSpec inspired test framework for ReasonML/OCaml/Bucklescript. The
 runner uses raw javascript code, so it will only run in node environments at the moment.
 
@@ -133,7 +135,8 @@ and run tests, as files are written on disk.
 ## Syntax
 
 Instead of using mutating nested function calls, _Respect_ uses immutable data
-structures for building up the test context and tests.
+structures for building up the test context and tests. Therefore, the
+`desribe`-operation takes nested operations in a list.
 
 ```
 register(
@@ -155,6 +158,21 @@ register(
 
 The only mutating construct here is the function `register` which adds the test
 context to a root context.
+
+### Pending tests
+
+Often it is useful to write pending tests, small skeleton desrciptions of
+functionality you need to implement. This can turn the test framework into a
+small todo list:
+
+```
+describe("Register user", [
+  pending("Returns Ok(user) if registration succeeded"),
+  pending("Returns Error(DuplicateEmail) if email already registered"),
+]) |> register
+```
+
+Pending tests will not result in failure when running the tests.
 
 ## Async tests
 
