@@ -156,8 +156,8 @@ register(
   ])
 ```
 
-The only mutating construct here is the function `register` which adds the test
-context to a root context.
+The only mutating construct here is the function `register` which adds the group
+of examples to an implicit root group.
 
 ### Pending tests
 
