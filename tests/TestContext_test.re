@@ -29,7 +29,16 @@ describe("TestContext", [
       let ctx = create();
       ctx#add("key", 42)
       #get("key") |> shoulda(equal(42));
-    })
+    }),
+
+    describe("Subject", [
+      it("is not evaluated until used", (_) => {
+        let ctx = create();
+        let ctx = ctx#setSubj(ctx => ctx#get("key") + 1);
+        let ctx = ctx#add("key", 42);
+        ctx#subject() |> shoulda(equal(43));
+      })
+    ])
   ]),
   describe("Access with piping", [
     it("Can be piped", (_) => 
