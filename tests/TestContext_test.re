@@ -1,12 +1,8 @@
-open Respect.Dsl;
-
-open Respect.Runner;
-
+open Respect.Dsl.Async;
+open Respect.Matcher;
 open Respect.Domain;
 
-open Respect.Matcher;
-
-let exec = (x) => ExampleGroup.empty |> applyOperation(x) |> run;
+module Ctx = TestContext;
 
 let beFailure = (result) =>
   switch result {
@@ -14,25 +10,34 @@ let beFailure = (result) =>
   | _ => MatchFailure(Obj.repr(), Obj.repr())
   };
 
-describe(
-  "TestContext",
-  [
-    describe(
-      "Adding data to context",
-      [
-        it_w(
-          "Makes the data retrievable",
-          (_) => {
-            let ctx = TestContext.create(TestContext.ContextMap.empty);
-            ctx 
-              |> TestContext.add("key", 42)
-              |> TestContext.get("key") 
-              |> shoulda(equal(42))
-          }
-        )
-      ]
-    )
-  ]
-)
-|> register;
+let create = () => TestContext.create(TestContext.ContextMap.empty);
 
+describe("TestContext", [
+  describe("Get/set data to context", [
+    it("Data added to context is retrievable", (_) => {
+      let ctx = create();
+      ctx
+        #add("key", 42)
+        #get("key") |> shoulda(equal(42));
+    }),
+    it("Data new values overwrite old values", (_) => {
+      let ctx = create();
+      let ctx = ctx#add("key2", 42);
+      ctx#add("key", 43)#get("key") |> shoulda(equal(43))
+    }),
+    it("Subjec to change!!! Context is mutated", (_) => {
+      let ctx = create();
+      ctx#add("key", 42)
+      #get("key") |> shoulda(equal(42));
+    })
+  ]),
+  describe("Access with piping", [
+    it("Can be piped", (_) => 
+      create()
+        |> Ctx.add("key", 42)
+        |> Ctx.add("key", 43)
+        |> Ctx.get("key")
+        |> shoulda(equal(43))
+    )
+  ])
+]) |> register;
