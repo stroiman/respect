@@ -18,6 +18,12 @@ let matchFailure = (a) => cb => cb(MatchFailure(a |> Obj.repr));
 let equal = (expected, actual) =>
   actual == expected ? matchSuccess(actual) : matchFailure(expected);
 
+let beGreaterThan = (expected, actual) =>
+  actual > expected ? matchSuccess(actual) : matchFailure(expected);
+
+let beLessThan = (expected, actual) =>
+  actual < expected ? matchSuccess(actual) : matchFailure(expected);
+
 let should = (matcher: matcher('a, 'b), actual: 'a) => {
   let result = ref(None);
   matcher(actual)(r => result := Some(r));
