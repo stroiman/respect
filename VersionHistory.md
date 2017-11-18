@@ -1,5 +1,15 @@
 # ReSpect Version History
 
+## 0.2.0
+
+ * Breaking change: A match result can now only be asynchronous, but helper
+     functions exists for matchers that evaluate synchronously. See the readme
+     for guidance.
+
+## 0.1.0
+
+ * Support for pending tests
+
 ## 0.0.8
 
  * Only show failed tests in the console

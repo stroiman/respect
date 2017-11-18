@@ -9,6 +9,18 @@ I base this on a lot of experience I gained from a similar project for F#, FSpec
 
 This project is still in a very early stage, so use at your own risk.
 
+## Latest changes
+
+### 0.2.0
+
+ * Breaking change: A match result can now only be asynchronous, but helper
+     functions exists for matchers that evaluate synchronously. See the readme
+     for guidance.
+
+### 0.1.0
+
+ * Support for pending tests
+
 ## TODO
 
  * "Finalize" DSL for building test suites.
@@ -238,37 +250,34 @@ Please be aware that the matcher syntax is likely to change, but I will try
 to keep backward compatibility by moving alternate matcher framework into separate
 modules.
 
-## Matchers
+## Matchers (breaking change in version 0.2)
 
 The matchers framework is based on these types:
 
 ```
-type syncMatchResult 't =
-  | MatchSuccess 't
-  | MatchFailure Obj.t;
+type matchResult('t) =
+  | MatchSuccess('t)
+  | MatchFailure(Obj.t);
 
-type asyncMatchResult 'a = (syncMatchResult 'a => unit) => unit;
+type matcher('a, 'b) = 'a => (matchResult('b) => unit) => unit;
 
-exception MatchFailedException string;
-
-type matchResult 'a =
-  | SyncMatchResult (syncMatchResult 'a)
-  | AsyncMatchResult (asyncMatchResult 'a);
-
-type matcher 'a 'b = 'a => matchResult 'b;
+exception MatchFailedException(string);
 ```
 
-So a matcher takes an actual value and returns a match result, which can be
-either synchronous, or asynchronous, in which case a callback will be called
-with the match result once it is done.
+So a matcher takes an actual value and provides a matchresult asyncrounously
+through a callback. Matchers that evaluate synchronously can use these helper
+functions
+
+```
+let matchSuccess = (a) => cb => cb(MatchSuccess(a));
+let matchFailure = (a) => cb => cb(MatchFailure(a |> Obj.repr));
+```
 
 So if we look at the `equal` match constructor:
 
 ```
-let equal expected => fun actual =>
-  SyncMatchResult (actual == expected
-                   ? MatchSuccess actual
-                   : MatchFailure (Obj.repr expected));
+let equal = (expected, actual) =>
+  actual == expected ? matchSuccess(actual) : matchFailure(expected);
 ```
 
 So it takes an expected value and returns a matcher based on this.
