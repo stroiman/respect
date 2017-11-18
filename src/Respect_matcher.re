@@ -1,58 +1,34 @@
-type syncMatchResult('t) =
+type matchResult('t) =
   | MatchSuccess('t)
   | MatchFailure(Obj.t);
 
-type asyncMatchResult('a) = (syncMatchResult('a) => unit) => unit;
-
 exception MatchFailedException(string);
 
-type matchResult('a) =
-  | SyncMatchResult(syncMatchResult('a))
-  | AsyncMatchResult(asyncMatchResult('a));
+type matcher('a, 'b) = 'a => (matchResult('b) => unit) => unit;
 
-type matcher('a, 'b) = 'a => matchResult('b);
+let (>=>) = (a: matcher('a, 'b), b: matcher('b, 'c)) => (x: 'a) => (cb) =>
+  a(x, (fun
+      | MatchFailure(x) => cb(MatchFailure(x))
+      | MatchSuccess(x) => b(x, cb)
+      ));
 
-let (>=>) = (a: matcher('a, 'b), b: matcher('b, 'c)) => {
-  let result: matcher('a, 'c) =
-    (x: 'a) =>
-      switch (a(x)) {
-      | SyncMatchResult(MatchSuccess(x)) => b(x)
-      | SyncMatchResult(MatchFailure(x)) => SyncMatchResult(MatchFailure(x))
-      | AsyncMatchResult(x) =>
-        AsyncMatchResult(
-          (
-            (cb) =>
-              x(
-                (firstResult) =>
-                  switch firstResult {
-                  | MatchFailure(x) => cb(MatchFailure(x))
-                  | MatchSuccess(x) =>
-                    switch (b(x)) {
-                    | SyncMatchResult(x) => cb(x)
-                    | AsyncMatchResult(x) => x(cb)
-                    }
-                  }
-              )
-          )
-        )
-      };
-  result
-};
+let matchSuccess = (a) => cb => cb(MatchSuccess(a));
+let matchFailure = (a) => cb => cb(MatchFailure(a |> Obj.repr));
 
 let equal = (expected, actual) =>
-  SyncMatchResult(actual == expected ? MatchSuccess(actual) : MatchFailure(Obj.repr(expected)));
+  actual == expected ? matchSuccess(actual) : matchFailure(expected);
 
-let should = (matcher: 'a => matchResult('b), actual: 'a) =>
-  switch (matcher(actual)) {
-  | AsyncMatchResult(_) => raise(MatchFailedException("Cannot run async matcher synchronousely"))
-  | SyncMatchResult(result) =>
-    switch result {
-    | MatchSuccess(_) => ()
-    | MatchFailure(expected) =>
+let should = (matcher: matcher('a, 'b), actual: 'a) => {
+  let result = ref(None);
+  matcher(actual)(r => result := Some(r));
+  switch(result^) {
+    | Some(MatchSuccess(_)) => ()
+    | Some(MatchFailure(e)) => 
       Js.log("Match failed");
-      Js.log(("Expected: ", expected));
-      Js.log(("Actual: ", actual));
+      Js.log2("Expected: ", e);
+      Js.log2("Actual: ", actual);
       MatchFailedException("Match failed") |> raise
+    | None => failwith("Matcher did not eval synchronously");
     }
   };
 
@@ -66,8 +42,5 @@ let shoulda = (matcher, actual, don: Respect_callbacks.doneCallback) => {
       Js.log(("Actual: ", actual));
       don(~err="match failed", ())
     };
-  switch (matcher(actual)) {
-  | SyncMatchResult(result) => handleMatch(result)
-  | AsyncMatchResult(fn) => fn(handleMatch)
-  }
+  (matcher(actual))(handleMatch)
 };

@@ -47,8 +47,7 @@ describe(
     it_w(
       "Implements async match",
       (_) => {
-        let asyncMatcher = () =>
-          AsyncMatchResult((cb) => Js.Global.setTimeout(() => cb(MatchSuccess()), 10) |> ignore);
+        let asyncMatcher = () => cb => Js.Global.setTimeout(() => cb(MatchSuccess()), 10) |> ignore;
         () |> shoulda(asyncMatcher)
       }
     )

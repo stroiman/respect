@@ -15,7 +15,7 @@ external asyncSucceedingFunction : (int, (Js.null(Js.Exn.t), int) => unit) => un
 let haveMessage = expected => actual => 
   switch(actual) {
     | Async.JsError(err) => equal(expected, Js.Exn.message(err))
-    | _ => SyncMatchResult(MatchFailure(actual |> Obj.repr))
+    | _ => matchFailure(actual)
     };
 
 describe("Async module", [
@@ -65,16 +65,16 @@ describe("Async module", [
 
   describe("Timeout", [
     it("fails when timeout exceeded", (_) => {
-      let after = ((cb,_)) => Js.Global.setTimeout(() => cb(42), 5) |> ignore;
+      let after = ((cb,_)) => Js.Global.setTimeout(() => cb(42), 10) |> ignore;
       after
-        |> Async.timeout(MilliSeconds(1))
+        |> Async.timeout(MilliSeconds(0))
         |> shoulda(asyncThrow >=> equal(Async.Timeout));
     }),
 
     it("Succeeds when timeout not exceeded", (_) => {
-      let after = ((cb,_)) => Js.Global.setTimeout(() => cb(42), 1) |> ignore;
+      let after = ((cb,_)) => Js.Global.setTimeout(() => cb(42), 0) |> ignore;
       after
-        |> Async.timeout(MilliSeconds(5))
+        |> Async.timeout(MilliSeconds(10))
         |> shoulda(asyncResolve >=> equal(42));
     })
   ]),
