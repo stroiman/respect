@@ -1,6 +1,6 @@
 let runRoot = (callback) =>
   Respect.Runner.runRoot ()
-  |> Respect_async.runExn(~fs=
+  |> Respect_async.run(
     (result) =>
       if (result |> Respect.TestResult.isSuccess) {
         Js.log("Test run succeeded");

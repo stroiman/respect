@@ -73,6 +73,4 @@ let timeout = (duration:duration, x:t('a)) : t('a) => {
 let from_callback = (fn: ('a => unit) => unit) : t('a) =>
   ((successCb, _)) => fn(successCb);
 
-let run = (f, x) => x((f, (_) => ()));
-
-let runExn = (~fs, ~fe, x) => x((fs, fe));
+let run = (~fe=?, f, x) => x((f, fe |> Js.Option.getWithDefault((_) => ())));

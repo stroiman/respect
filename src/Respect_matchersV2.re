@@ -21,8 +21,8 @@ let expect = (actual) => {
   pri actual = actual; /* avoid warning */
   pub to_ = (matcher:matcher('a,'b)) => (don: doneCallback) => {
     matcher#f(this#actual)
-      |> Async.runExn (
-        ~fs=createCallback(don), 
+      |> Async.run (
+        createCallback(don), 
         ~fe=(_) => don(~err="Exception occurred",()))
   }
 };

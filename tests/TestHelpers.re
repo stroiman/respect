@@ -65,12 +65,12 @@ module AsyncMatchers = {
   let asyncResolve = (actual:Async.t('a)) => cb => {
     let successCb = x => cb(MatchSuccess(x));
     let exnCb = x => cb(MatchFailure(x |> Obj.repr));
-    actual |> Async.runExn(~fs=successCb,~fe=exnCb)
+    actual |> Async.run(successCb,~fe=exnCb)
   };
 
   let asyncThrow = (actual:Async.t('a)) => cb => {
     let successCb = x => cb(MatchFailure(x |> Obj.repr));
     let exnCb = x => cb(MatchSuccess(x));
-    actual |> Async.runExn(~fs=successCb,~fe=exnCb)
+    actual |> Async.run(successCb,~fe=exnCb)
   };
 }
