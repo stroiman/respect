@@ -1,5 +1,12 @@
 # ReSpect Version History
 
+### 0.3.0
+
+ * Breaking change: In order to get better error messages when match fails, the
+     MatchFailure constructor now takes two args, the actual object, and the
+     expected object of the failed matcher. This was in particular for testing
+     async results.
+
 ## 0.2.0
 
  * Breaking change: A match result can now only be asynchronous, but helper

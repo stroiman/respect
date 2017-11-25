@@ -11,6 +11,19 @@ This project is still in a very early stage, so use at your own risk.
 
 ## Latest changes
 
+### 0.3.0
+
+ * Breaking change: In order to get better error messages when match fails, the
+     MatchFailure constructor now takes two args, the actual object, and the
+     expected object of the failed matcher.
+
+Previously when testing async code, I could get messages like this
+```
+Expected: [ ["john.doe@example.com"], ...]
+Actual: [ [Function] ]
+```
+Which wasn't helpful in finding the bug.
+
 ### 0.2.0
 
  * Breaking change: A match result can now only be asynchronous, but helper
