@@ -8,12 +8,6 @@ open Respect.Matcher;
 
 let exec = (x) => ExampleGroup.empty |> applyOperation(x) |> run;
 
-let beFailure = (result) =>
-  switch result {
-  | Respect.Domain.TestFailed => MatchSuccess()
-  | _ => MatchFailure(Obj.repr())
-  };
-
 describe(
   "TestContext",
   [

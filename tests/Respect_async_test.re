@@ -15,7 +15,7 @@ external asyncSucceedingFunction : (int, (Js.null(Js.Exn.t), int) => unit) => un
 let haveMessage = expected => actual => 
   switch(actual) {
     | Async.JsError(err) => equal(expected, Js.Exn.message(err))
-    | _ => matchFailure(actual)
+    | _ => matchFailure(actual,expected)
     };
 
 describe("Async module", [
