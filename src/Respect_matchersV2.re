@@ -17,15 +17,18 @@ type matcher('a,'b) = {
   description: string
 };
 
+type expecter('a,'b) = {
+  to_: matcher('a,'b) => doneCallback => unit
+};
+
 let createCallback = (don:doneCallback) => 
   fun 
   | MatchSuccess(_) => don() 
   | MatchFailure(_) => don(~err="Match error",());
 
-let expect = (actual) => {
-  pri actual = actual; /* avoid warning */
-  pub to_ = (matcher:matcher('a,'b)) => (don: doneCallback) => {
-    matcher.f(this#actual)
+let expect = (actual) : expecter('a,'b) => {
+  to_ : (matcher:matcher('a,'b)) => (don: doneCallback) => {
+    matcher.f(actual)
       |> Async.run (
         createCallback(don), 
         ~fe=(_) => don(~err="Exception occurred",()))

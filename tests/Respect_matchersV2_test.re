@@ -19,12 +19,12 @@ module StrMatchers = Make(String);
 describe("MatchersV2", [
   describe("equal", [
     it("matches when args are equal", (_) => {
-      expect(5)#to_(equal(5))
+      expect(5).to_(equal(5))
         |> shouldMatch
     }),
 
     it("fails when args are not equal", (_) => {
-      expect(5)#to_(IntMatchers.equal(6))
+      expect(5).to_(IntMatchers.equal(6))
         |> shouldNotMatch
     }),
   ]),
@@ -32,7 +32,7 @@ describe("MatchersV2", [
   describe("Description", [
     it("is nice", (_) => {
       let matcher = IntMatchers.equal(42);
-      expect(matcher.description)#to_(StrMatchers.equal("equal to 42"))
+      expect(matcher.description).to_(StrMatchers.equal("equal to 42"))
     })
   ])
 ]) |> register
