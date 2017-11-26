@@ -13,6 +13,16 @@ let beFailure = (result) =>
 let create = () => TestContext.create(TestContext.ContextMap.empty);
 
 describe("TestContext", [
+  describe("done helper for setup", [
+    beforeEach(ctx => ctx |> TestContext.add("key",42) |> TestContext.don),
+
+    it("Uses value from setup", (ctx) => {
+      ctx
+        |> TestContext.get("key")
+        |> shoulda(equal(42))
+    })
+  ]),
+
   describe("Get/set data to context", [
     it("Data added to context is retrievable", (_) => {
       let ctx = create();

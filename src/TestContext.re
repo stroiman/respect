@@ -1,3 +1,5 @@
+open Respect_callbacks;
+
 module ContextMap = {
   include Map.Make(String);
   let merge = (a, b) => merge( (_, x, y) => switch x { | None => y | _ => x }, a, b);
@@ -9,7 +11,8 @@ type t = {.
   add: 'a. string => 'a => t,
   get: 'a. string => 'a,
   setSubj: 'a. (t => 'a) => t,
-  subject: 'a. unit => 'a
+  subject: 'a. unit => 'a,
+  don: unit => doneCallback => unit
 };
 
 let create = (metaData) : t => {
@@ -39,7 +42,9 @@ let create = (metaData) : t => {
         s |> Obj.obj
         }
       | Some(x) => x |> Obj.obj
-      }
+      };
+
+  pub don = () => d => d();
 };
 
 let add = (key : string, x : 'a, ctx : t) => ctx#add(key, x);
@@ -50,6 +55,8 @@ let subject = (ctx:t) => ctx#subject();
 let map = (key : string, f: 'a => 'b, ctx : t) => {
   let updated = ctx |> get(key) |> f;
   ctx |> add(key, updated);
-}
+};
+
+let don = (ctx:t) : (doneCallback => unit) => ctx#don();
 
 
