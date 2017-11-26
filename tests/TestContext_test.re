@@ -40,6 +40,15 @@ describe("TestContext", [
       })
     ])
   ]),
+  describe("Update data", [
+    it("modifies a key based on a function", (_) => {
+      let ctx = create();
+      ctx 
+        |> Ctx.add("key", 42)
+        |> Ctx.map("key", x => x+1)
+        |> Ctx.get("key") |> shoulda(equal(43))
+    })
+  ]),
   describe("Access with piping", [
     it("Can be piped", (_) => 
       create()

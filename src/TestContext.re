@@ -43,4 +43,11 @@ let create = (metaData) : t => {
 };
 
 let add = (key : string, x : 'a, ctx : t) => ctx#add(key, x);
-let get = (key : string, ctx : t) : 'a => ctx#get(key)
+let get = (key : string, ctx : t) : 'a => ctx#get(key);
+
+let map = (key : string, f: 'a => 'b, ctx : t) => {
+  let updated = ctx |> get(key) |> f;
+  ctx |> add(key, updated);
+}
+
+
