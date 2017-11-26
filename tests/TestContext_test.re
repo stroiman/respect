@@ -34,9 +34,9 @@ describe("TestContext", [
     describe("Subject", [
       it("is not evaluated until used", (_) => {
         let ctx = create();
-        let ctx = ctx#setSubj(ctx => ctx#get("key") + 1);
+        let ctx = ctx |> TestContext.setSubj(ctx => ctx#get("key") + 1);
         let ctx = ctx#add("key", 42);
-        ctx#subject() |> shoulda(equal(43));
+        TestContext.subject(ctx) |> shoulda(equal(43));
       })
     ])
   ]),
