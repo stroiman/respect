@@ -1,9 +1,8 @@
 module Matcher = Respect_matcher;
 module MatchersV2 = Respect_matchersV2;
-
 module Callbacks = Respect_callbacks;
-
 module As = Respect_async;
+module Ctx = TestContext;
 
 /*
    Module Domain describes the internal structure that represents examples

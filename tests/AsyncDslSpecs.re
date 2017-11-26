@@ -1,5 +1,5 @@
+open Respect;
 open Respect.Dsl.Async;
-
 open Respect.Matcher;
 
 describe(
@@ -8,7 +8,7 @@ describe(
     it( "Example group has metadata",
       (_) => {
         let grp = DslSpecs.parse(("name", "value") **> describe("Group", []));
-        let expected = TestContext.ContextMap.empty |> TestContext.ContextMap.add("name", Obj.repr("value"));
+        let expected = Ctx.ContextMap.empty |> Ctx.ContextMap.add("name", Obj.repr("value"));
         grp.metadata |> shoulda(equal(expected))
       }
     )

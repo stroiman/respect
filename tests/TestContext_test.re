@@ -1,8 +1,7 @@
+open Respect;
 open Respect.Dsl.Async;
 open Respect.Matcher;
 open Respect.Domain;
-
-module Ctx = TestContext;
 
 let beFailure = (result) =>
   switch result {
@@ -10,15 +9,15 @@ let beFailure = (result) =>
   | _ => MatchFailure(Obj.repr(), Obj.repr())
   };
 
-let create = () => TestContext.create(TestContext.ContextMap.empty);
+let create = () => Ctx.create(Ctx.ContextMap.empty);
 
 describe("TestContext", [
   describe("done helper for setup", [
-    beforeEach(ctx => ctx |> TestContext.add("key",42) |> TestContext.don),
+    beforeEach(ctx => ctx |> Ctx.add("key",42) |> Ctx.don),
 
     it("Uses value from setup", (ctx) => {
       ctx
-        |> TestContext.get("key")
+        |> Ctx.get("key")
         |> shoulda(equal(42))
     })
   ]),
@@ -44,9 +43,9 @@ describe("TestContext", [
     describe("Subject", [
       it("is not evaluated until used", (_) => {
         let ctx = create();
-        let ctx = ctx |> TestContext.setSubj(ctx => ctx#get("key") + 1);
+        let ctx = ctx |> Ctx.setSubj(ctx => ctx#get("key") + 1);
         let ctx = ctx#add("key", 42);
-        TestContext.subject(ctx) |> shoulda(equal(43));
+        Ctx.subject(ctx) |> shoulda(equal(43));
       })
     ])
   ]),
