@@ -34,5 +34,8 @@ describe("MatchersV2", [
       let matcher = IntMatchers.equal(42);
       expect(matcher.description).to_(StrMatchers.equal("equal to 42"))
     })
+  ]),
+  
+  describe("Get actual message", [
   ])
 ]) |> register
