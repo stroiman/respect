@@ -1,5 +1,16 @@
 # ReSpect Version History
 
+### 0.4.0
+
+ * Refactor: Test context is now represented by an object instead of a mutable
+     record. But the TestContext module still has functions for operating on the
+     actual context, so existing code should be compatible.
+ * Testcontext subject: The subject is a function that evaluates to an actual
+     value when requested. The function receives the test context as input. You
+     can assign the subject in a parent group, and modify the context in a child
+     group.
+ * TextContext.map: Allows you to easily modify objects in the context.
+
 ### 0.3.0
 
  * Breaking change: In order to get better error messages when match fails, the
