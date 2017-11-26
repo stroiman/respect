@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+### 0.4.1
+
+ * TestContext.don function to help accept a done callback from setup functions
+
 ### 0.4.0
 
  * Refactor: Test context is now represented by an object instead of a mutable
