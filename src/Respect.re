@@ -7,7 +7,7 @@ module Ctx = TestContext;
 /*
    Module Domain describes the internal structure that represents examples
    and groups of examples.
- */
+*/
 module Domain = {
   /* Represents the outcome of running a test */
   type executionResult =

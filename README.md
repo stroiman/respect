@@ -11,6 +11,10 @@ This project is still in a very early stage, so use at your own risk.
 
 ## Latest changes
 
+### 0.4.2
+
+ * Added Respect.Ctx module as alias for TestContext
+
 ### 0.4.1
 
  * TestContext.don function to help accept a done callback from setup functions
