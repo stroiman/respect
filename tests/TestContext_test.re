@@ -66,5 +66,18 @@ describe("TestContext", [
         |> Ctx.get("key")
         |> shoulda(equal(43))
     )
+  ]),
+  describe("tryGet", [
+    it("returns Some when data exists", (_) => {
+      create()
+        |> Ctx.add("key", 42)
+        |> Ctx.tryGet("key")
+        |> shoulda(equal(Some(42)))
+    }),
+    it("returns None when data doesn't exist", (_) => {
+      create()
+        |> Ctx.tryGet("key")
+        |> shoulda(equal(None))
+    })
   ])
 ]) |> register;
