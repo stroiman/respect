@@ -11,16 +11,12 @@ This project is still in a very early stage, so use at your own risk.
 
 ## Latest changes
 
-### 0.4.2
+### 0.4.0 - 0.4.3
 
+ * Added `Ctx.tryGet` - Returns `None` if no entry with the specified key exists
+     in the context data.
  * Added Respect.Ctx module as alias for TestContext
-
-### 0.4.1
-
  * TestContext.don function to help accept a done callback from setup functions
-
-### 0.4.0
-
  * Refactor: Test context is now represented by an object instead of a mutable
      record. But the TestContext module still has functions for operating on the
      actual context, so existing code should be compatible.

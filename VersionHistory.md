@@ -1,5 +1,10 @@
 # ReSpect Version History
 
+### 0.4.3
+
+ * Added `Ctx.tryGet` - Returns `None` if no entry with the specified key exists
+     in the context data.
+
 ### 0.4.2
 
  * Added Respect.Ctx module as alias for TestContext
