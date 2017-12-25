@@ -2,15 +2,37 @@ open Respect.Dsl;
 
 open Respect.Domain;
 
-let passingExampleCode = (_, cb) => cb(TestSucceeded);
+let passingExample = (~onRun=?,()) => (ctx, cb) => {
+  switch(onRun) {
+    | Some(f) => f(ctx);
+    | None => ();
+  };
+  cb(TestSucceeded);
+};
 
-let failingExample = (_, cb) => cb(TestFailed);
+let failingExample = (~onRun=?,()) => (ctx, cb) => {
+  switch(onRun) {
+    | Some(f) => f(ctx);
+    | None => ();
+  };
+  cb(TestFailed);
+};
+
+let pendingExample = (~onRun=?,()) => (ctx, cb) => {
+  switch(onRun) {
+    | Some(f) => f(ctx);
+    | None => ();
+  };
+  cb(TestPending);
+};
 
 let anExampleWithCode = (fn) => {
   name: "dummy",
   func: wrapTest(fn),
   metadata: TestContext.ContextMap.empty
 };
+
+let passingSetup = passingExample;
 
 let anExampleGroup = ExampleGroup.empty;
 
@@ -27,7 +49,7 @@ let withSetup = (code) => ExampleGroup.addSetup(Setup(code));
 
 let withChildGroup = (child, grp) => grp |> ExampleGroup.addChild(child);
 
-let withExample = (~metadata=?, ~name="Dummy example", ~code=passingExampleCode, grp) => {
+let withExample = (~metadata=?, ~name="Dummy example", ~code=passingExample(), grp) => {
   let md =
     switch metadata {
     | None => TestContext.ContextMap.empty

@@ -1,4 +1,5 @@
 module As = Respect_async;
+module Ctx = Respect.Ctx;
 open Respect.Dsl.Async;
 open Respect.Domain;
 open Respect.Runner;
@@ -7,144 +8,121 @@ open TestHelpers;
 open TestHelpers.AsyncMatchers;
 exception MockFailure(string);
 
-let orgRun = run;
-let run = (ex, cb) => run(ex) |> As.run(cb);
+let (>>|) = (x, f) => x |> Async.map(~f);
 
 describe("Runner", [
   describe("Test Result", [
     it("Is success when all tests succeed", (_) => {
       let ex = anExampleGroup
-        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) })
-        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) });
-      orgRun(ex) |> shoulda(asyncResolve >=> equal(TestSucceeded))
+        |> withExample( ~code = passingExample())
+        |> withExample( ~code = passingExample());
+      run(ex) |> shoulda(asyncResolve >=> equal(TestSucceeded))
     }),
     it("Is pending when one test is pending", (_) => {
       let ex = anExampleGroup
-        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) })
-        |> withExample( ~code = (_,cb) => { cb(TestPending) });
-      orgRun(ex) |> shoulda(asyncResolve >=> equal(TestPending))
+        |> withExample( ~code = passingExample() )
+        |> withExample( ~code = pendingExample() );
+      run(ex) |> shoulda(asyncResolve >=> equal(TestPending))
     }),
     it("Is a failure when one test is pending", (_) => {
       let ex = anExampleGroup
-        |> withExample( ~code = (_,cb) => { cb(TestSucceeded) })
-        |> withExample( ~code = (_,cb) => { cb(TestPending) })
-        |> withExample( ~code = (_,cb) => { cb(TestFailed) });
-      orgRun(ex) |> shoulda(asyncResolve >=> equal(TestFailed))
+        |> withExample( ~code = passingExample() )
+        |> withExample( ~code = pendingExample() )
+        |> withExample( ~code = failingExample() );
+      run(ex) |> shoulda(asyncResolve >=> equal(TestFailed))
     })
   ]),
 
   describe("Group has a setup", [
-    it("Doesn't execute example code when setup code fails", (_, don) => {
+    it("Doesn't execute example code when setup code fails", (_) => {
       let lines = ref([]);
       let append = (line) => lines := lines^ @ [line];
       let ex =
         anExampleGroup
           |> withSetup( (_, cb) => { append("setup"); cb(TestFailed) })
           |> withExample( ~code= (_, cb) => { append("test"); cb(TestSucceeded) });
-          run(ex, (_) => (lines^ |> shoulda(equal(["setup"])))(don))
+      (run(ex) >>| (_) => lines^)
+      |> shoulda(asyncResolve >=> equal(["setup"]))
     }),
 
-    it("Executes multiple setups before the example", (_, don) => {
+    it("Executes multiple setups before the example", (_) => {
       let lines = ref([]);
-      let append = (line) => lines := lines^ @ [line];
+      let append = (line) => (_) => lines := lines^ @ [line];
       let ex =
         anExampleGroup
-          |> withSetup( (_, cb) => { append("setup 1"); cb(TestSucceeded) })
-          |> withSetup( (_, cb) => { append("setup 2"); cb(TestSucceeded) })
-          |> withExample( ~code= (_, cb) => { append("test"); cb(TestSucceeded) });
-          run(ex, (_) => (lines^ |> shoulda(equal(["setup 1", "setup 2", "test"])))(don))
+          |> withSetup(passingSetup(~onRun=append("setup 1"),()) )
+          |> withSetup(passingSetup(~onRun=append("setup 2"),()) )
+          |> withExample(~code=passingExample(~onRun=append("test"),()) );
+      let expected = ["setup 1", "setup 2", "test"];
+      (run(ex) >>| (_) => lines^)
+      |> shoulda(asyncResolve >=> equal(expected))
     }),
 
-    it("Executes the setup code before the example", (_, don) => {
+    it("Executes the setup code before the example", (_) => {
       let lines = ref([]);
-      let append = (line) => lines := lines^ @ [line];
+      let append = (line) => (_) => lines := lines^ @ [line];
       let ex =
         anExampleGroup
-          |> withSetup(
-            (_, cb) => {
-              append("setup");
-              cb(TestSucceeded)
-            }
-          )
-          |> withExample(
-            ~code=
-            (_, cb) => {
-              append("test");
-              cb(TestSucceeded)
-            }
-          );
-      run(ex, (_) => (lines^ |> shoulda(equal(["setup", "test"])))(don))
+          |> withSetup(passingSetup(~onRun=append("setup"),()))
+          |> withExample(~code=passingExample(~onRun=append("test"),()));
+
+      (run(ex) >>| (_) => lines^)
+      |> shoulda(asyncResolve >=> equal(["setup", "test"]))
     }),
 
     describe("Group has two examples", [
-      it("Runs the setup before each example", (_, don) => {
+      it("Runs the setup before each example", (_) => {
         let lines = ref([]);
-        let append = (line) => lines := lines^ @ [line];
+        let append = (line) => (_) => lines := lines^ @ [line];
         let ex =
           anExampleGroup
-            |> withSetup( (_, cb) => { append("setup"); cb(TestSucceeded) })
-            |> withExample( ~code= (_, cb) => { append("test 1"); cb(TestSucceeded) })
-            |> withExample( ~code= (_, cb) => { append("test 2"); cb(TestSucceeded) });
-        run( ex, (_) => (lines^ |> shoulda(equal(["setup", "test 1", "setup", "test 2"])))(don))
-    })
-  ]),
+            |> withSetup(passingSetup(~onRun=append("setup"),()))
+            |> withExample( ~code=passingExample(~onRun=append("test 1"),()))
+            |> withExample( ~code=passingExample(~onRun=append("test 2"),()));
+        let expected = ["setup", "test 1", "setup", "test 2"];
+        (run(ex) >>| (_) => lines^)
+        |> shoulda(asyncResolve >=> equal(expected))
+      })
+    ]),
 
-  describe("Nested groups", [
-    it("Runs the setups from outermost to innermost group", (_, don) => {
-      let lines = ref([]);
-      let append = (line) => lines := lines^ @ [line];
-      let innerGroup =
-        anExampleGroup
-          |> withSetup( (_, cb) => { append("inner setup"); cb(TestSucceeded) })
-          |> withExample( ~code= (_, cb) => { append("inner test"); cb(TestSucceeded) });
-      let outerGroup =
-        anExampleGroup
-          |> withSetup( (_, cb) => { append("outer setup"); cb(TestSucceeded) })
-          |> withExample( ~code= (_, cb) => { append("outer test"); cb(TestSucceeded) })
-          |> withChildGroup(innerGroup);
-          run(
-            outerGroup,
-            (_) => {
-              let expected = [
-                "outer setup",
-                  "outer test",
-                  "outer setup",
-                  "inner setup",
-                  "inner test"
-              ];
-              (lines^ |> shoulda(equal(expected)))(don)
-          })
+    describe("Nested groups", [
+      it("Runs the setups from outermost to innermost group", (_) => {
+        let lines = ref([]);
+        let append = (line) => (_) => lines := lines^ @ [line];
+        let innerGroup =
+          anExampleGroup
+            |> withSetup(passingSetup(~onRun=append("inner setup"),()))
+            |> withExample(~code=passingExample(~onRun=append("inner test"),()));
+        let outerGroup =
+          anExampleGroup
+            |> withSetup(passingSetup(~onRun=append("outer setup"),()))
+            |> withExample(~code=passingExample(~onRun=append("outer test"),()))
+            |> withChildGroup(innerGroup);
+        let expected = [
+          "outer setup", "outer test", "outer setup",
+          "inner setup", "inner test"
+        ];
+        (run(outerGroup) >>| (_) => lines^)
+        |> shoulda(asyncResolve >=> equal(expected))
       })
     ])
   ]),
 
   describe("ExampleGroup has metadata", [
-    it("Initializes the metadata on the test context",
-      (_, don) => {
-        let lines = ref([]);
-        let append = (line) => lines := lines^ @ [line];
+    it("Initializes the metadata on the test context", (_) => {
+        let data = ref("");
         let grp =
           anExampleGroup
             |> withMetadata(("data", "value"))
-            |> withExample(
-              ~code=
-              (ctx, cb) => {
-                append(ctx |> TestContext.get("data"));
-                cb(TestSucceeded)
-              }
-            );
-        run(
-          grp,
-          (_) => {
-            let expected = ["value"];
-            (lines^ |> shoulda(equal(expected)))(don)
-            }
-        )
-      }
-  )]
-  ),
+            |> withExample(~code=passingExample(
+              ~onRun=ctx => data := ctx |> Ctx.get("data"),()));
+        (run(grp) >>| (_) => data^)
+        |> shoulda(asyncResolve >=> equal("value"))
+    })
+  ]),
+
   describe("Parent group has metadata", [
-    it("uses the metadata closest to the example", (_, don) => {
+    it("uses the metadata closest to the example", (_) => {
       let lines = ref([]);
       let append = (line) => lines := lines^ @ [line];
       let innerGroup =
@@ -153,40 +131,26 @@ describe("Runner", [
           |> withMetadata(("data3", "inner"))
           |> withExample(
             ~metadata=("data3", "test"),
-            ~code=
-            (ctx, cb) => {
+            ~code=passingExample(~onRun=ctx => {
               append(ctx |> TestContext.get("data1"));
               append(ctx |> TestContext.get("data2"));
               append(ctx |> TestContext.get("data3"));
-              cb(TestSucceeded)
-            }
-          );
+            },()));
       let outerGroup =
         anExampleGroup
           |> withMetadata(("data1", "outer"))
           |> withMetadata(("data2", "outer"))
           |> withMetadata(("data3", "outer"))
           |> withChildGroup(innerGroup);
-          run(
-            outerGroup,
-            (_) => {
-              let expected = ["outer", "inner", "test"];
-              (lines^ |> shoulda(equal(expected)))(don)
-              }
-          )
+      (run(outerGroup) >>| (_) => lines^)
+      |> shoulda(asyncResolve >=> equal(["outer", "inner", "test"]))
     })
   ]),
 
   describe("example throws an exception", [
-    it("returns an error message", (_, don) => {
+    it("returns an error message", (_) => {
       let ex = anExampleGroup |> withExampleCode((_) => raise(MockFailure("")));
-      run(
-        ex,
-        fun
-        | TestFailed => don()
-        | TestSucceeded 
-        | TestPending => don(~err="Should fail", ())
-        )
+      run(ex) |> shoulda(asyncResolve >=> equal(TestFailed))
     })
   ]),
 
@@ -194,7 +158,7 @@ describe("Runner", [
     let lines = ref([]);
     let append = (line) => lines := [line, ...lines^];
     let ex = anExampleGroup |> withExampleCode((_) => append("x"));
-    run(ex, ignore);
-    lines^ |> shoulda(equal(["x"]))
+    (run(ex) >>| (_) => lines^)
+    |> shoulda(asyncResolve >=> equal(["x"]))
   })
 ]) |> register;
