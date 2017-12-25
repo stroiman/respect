@@ -8,7 +8,7 @@ open TestHelpers;
 open TestHelpers.AsyncMatchers;
 exception MockFailure(string);
 
-let (>>|) = (x, f) => x |> Async.map(~f);
+let runAndReturn = (res,examples) => run(examples) |> Async.map(~f=(_) => res^);
 
 describe("Runner", [
   describe("Test Result", [
@@ -41,7 +41,7 @@ describe("Runner", [
         anExampleGroup
           |> withSetup( (_, cb) => { append("setup"); cb(TestFailed) })
           |> withExample( ~code= (_, cb) => { append("test"); cb(TestSucceeded) });
-      (run(ex) >>| (_) => lines^)
+      ex |> runAndReturn(lines)
       |> shoulda(asyncResolve >=> equal(["setup"]))
     }),
 
@@ -54,7 +54,7 @@ describe("Runner", [
           |> withSetup(passingSetup(~onRun=append("setup 2"),()) )
           |> withExample(~code=passingExample(~onRun=append("test"),()) );
       let expected = ["setup 1", "setup 2", "test"];
-      (run(ex) >>| (_) => lines^)
+      ex |> runAndReturn(lines)
       |> shoulda(asyncResolve >=> equal(expected))
     }),
 
@@ -65,8 +65,7 @@ describe("Runner", [
         anExampleGroup
           |> withSetup(passingSetup(~onRun=append("setup"),()))
           |> withExample(~code=passingExample(~onRun=append("test"),()));
-
-      (run(ex) >>| (_) => lines^)
+      ex |> runAndReturn(lines)
       |> shoulda(asyncResolve >=> equal(["setup", "test"]))
     }),
 
@@ -80,7 +79,7 @@ describe("Runner", [
             |> withExample( ~code=passingExample(~onRun=append("test 1"),()))
             |> withExample( ~code=passingExample(~onRun=append("test 2"),()));
         let expected = ["setup", "test 1", "setup", "test 2"];
-        (run(ex) >>| (_) => lines^)
+        ex |> runAndReturn(lines)
         |> shoulda(asyncResolve >=> equal(expected))
       })
     ]),
@@ -102,7 +101,7 @@ describe("Runner", [
           "outer setup", "outer test", "outer setup",
           "inner setup", "inner test"
         ];
-        (run(outerGroup) >>| (_) => lines^)
+        outerGroup |> runAndReturn(lines)
         |> shoulda(asyncResolve >=> equal(expected))
       })
     ])
@@ -116,7 +115,7 @@ describe("Runner", [
             |> withMetadata(("data", "value"))
             |> withExample(~code=passingExample(
               ~onRun=ctx => data := ctx |> Ctx.get("data"),()));
-        (run(grp) >>| (_) => data^)
+        grp |> runAndReturn(data)
         |> shoulda(asyncResolve >=> equal("value"))
     })
   ]),
@@ -142,7 +141,7 @@ describe("Runner", [
           |> withMetadata(("data2", "outer"))
           |> withMetadata(("data3", "outer"))
           |> withChildGroup(innerGroup);
-      (run(outerGroup) >>| (_) => lines^)
+      outerGroup |> runAndReturn(lines)
       |> shoulda(asyncResolve >=> equal(["outer", "inner", "test"]))
     })
   ]),
@@ -158,7 +157,7 @@ describe("Runner", [
     let lines = ref([]);
     let append = (line) => lines := [line, ...lines^];
     let ex = anExampleGroup |> withExampleCode((_) => append("x"));
-    (run(ex) >>| (_) => lines^)
+    ex |> runAndReturn(lines)
     |> shoulda(asyncResolve >=> equal(["x"]))
   })
 ]) |> register;
