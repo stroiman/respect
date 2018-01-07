@@ -112,19 +112,20 @@ structures for building up the test context and tests. Therefore, the
 
 ```
 register(
-  describe "Parent context" [
-    it "has some test" (fun _ =>
+  describe("Parent context", [
+    it("has some test", (_) =>
       ...
-    )
-    it "has some test" (fun _ =>
-      ...
-    )
+    ),
 
-    describe "Child context" [
-      it "has more tests" (fun _ =>
+    it("has some test", (_) =>
+      ...
+    ),
+
+    describe("Child context", [
+      it("has more tests", (_) =>
         ...
       )
-    ]
+    ])
   ])
 ```
 
@@ -156,15 +157,15 @@ but maybe with helper functions to write sync examples if you need to.
 ```
 open Respect.Dsl.Async;
 
-describe "Parent context" [
-  it "has an async test" (fun _ don => {
+describe ("Parent context", [
+  it("has an async test", (_,don) => {
     if (success) {
-      don ();
+      don ()
     }else {
-      don err::"Error" ();
+      don (~err="Error",())
     }
   })
-] |> register;
+]) |> register;
 ```
 
 There is currently async matcher support through the function `shoulda`
@@ -178,15 +179,15 @@ This signature plays nicely with the callback allowing you to write tests like
 this:
 
 ```
-describe "Register User" [
-  describe "Posting valid user" [
-    it "creates a user" (fun _ => {
+describe("Register User", [
+  describe("Posting valid user", [
+    it("creates a user", (_) => {
       createValidInput ()
         |> UserFeature.registerUser
-        |> shoulda asyncSucceed
+        |> shoulda(asyncSucceed)
     })
-  ]
-] |> register
+  ])
+]) |> register
 ```
 
 This is a bit cryptic but I'll try to explain
@@ -257,29 +258,29 @@ the setup code executed in a parent group. The following example shows how:
 ```
 open Respect.Dsl.Async;
 
-describe "Register user" [
-  beforeEach (fun ctx don => {
-    ctx |> TestContext.get "userName"
+describe("Register user", [
+  beforeEach ((ctx,don) => {
+    ctx |> TestContext.get("userName")
     |> /* do something interesting with the user */
     don()
   }),
 
   ("userName", "johndoe") **>
-  describe "A valid user name was entered" [
-    it "Correctly registers the user" (fun ctx don => {
+  describe("A valid user name was entered", [
+    it("Correctly registers the user", (ctx,don) => {
        ...
        don
     })
-  ],
+  ]),
 
   ("userName", "!@#$") **>
-  describe "An invalid user name was entered" [
-    it "Returns a sensible error message" (fun ctx don => {
+  describe("An invalid user name was entered", [
+    it("Returns a sensible error message", (ctx, don) => {
        ...
        don ()
     })
-  ]
-] |> register
+  ])
+]) |> register
 ```
 
 ### Composing Matchers
@@ -321,18 +322,20 @@ The interesting thing is that the `asyncFail` matcher passes the error to the
 it with a new matcher that verifies that we actually get the expected error.
 
 ```
-describe "UserRepository" [
-    describe "findById" [
-      describe "record doesn't exist" [
-        it "returns DocumentNotFound" (fun _ => {
-          let id = "dummy";
-          UserRepository.getById id
-            |> shoulda (UserFeature_test.asyncFail >=> (equal (DocumentNotFound "users" id)))
-        })
-      ]
-    ]
-  ],
-] |> register;
+describe("UserRepository", [
+  describe("findById", [
+    describe("record doesn't exist", [
+      it("returns DocumentNotFound", (_) => {
+        let id = "dummy";
+        UserRepository.getById(id)
+          |> shoulda (asyncFail >=> (equal (DocumentNotFound("users",id))))
+          /* `asyncFail` assumes that `getById(id)` returns a returns a function
+              that accepts a callback, and verifies that the callback was called
+              with `Error(...)` */
+      })
+    ])
+  ])
+]) |> register;
 ```
 
 The operator supports combining sync and async matchers as you like - but they
