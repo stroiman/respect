@@ -1,5 +1,11 @@
 # ReSpect Version History
 
+### 0.5.0
+
+ * Breaking change: Renamed `TestContext` module to `Respect_ctx` and made it
+     available under `Respect.Ctx`. A quick fix to get your code to compile
+     is to add the this to your own modules `module TestContext = Respect.Ctx`.
+
 ### 0.4.3
 
  * Added `Ctx.tryGet` - Returns `None` if no entry with the specified key exists
