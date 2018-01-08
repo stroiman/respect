@@ -1,5 +1,5 @@
+open Respect;
 open Respect.Dsl;
-
 open Respect.Domain;
 
 let passingExample = (~onRun=?,()) => (ctx, cb) => {
@@ -29,7 +29,7 @@ let pendingExample = (~onRun=?,()) => (ctx, cb) => {
 let anExampleWithCode = (fn) => {
   name: "dummy",
   func: wrapTest(fn),
-  metadata: TestContext.ContextMap.empty
+  metadata: Ctx.ContextMap.empty
 };
 
 let passingSetup = passingExample;
@@ -42,7 +42,7 @@ let withExampleCode = (f) => f |> anExampleWithCode |> withAnExample;
 
 let withMetadata = ((name, value), grp) => {
   ...grp,
-  metadata: grp.metadata |> TestContext.ContextMap.add(name, value |> Obj.repr)
+  metadata: grp.metadata |> Ctx.ContextMap.add(name, value |> Obj.repr)
 };
 
 let withSetup = (code) => ExampleGroup.addSetup(Setup(code));
@@ -52,9 +52,9 @@ let withChildGroup = (child, grp) => grp |> ExampleGroup.addChild(child);
 let withExample = (~metadata=?, ~name="Dummy example", ~code=passingExample(), grp) => {
   let md =
     switch metadata {
-    | None => TestContext.ContextMap.empty
+    | None => Ctx.ContextMap.empty
     | Some((name, value)) =>
-      TestContext.ContextMap.empty |> TestContext.ContextMap.add(name, value |> Obj.repr)
+      Ctx.ContextMap.empty |> Ctx.ContextMap.add(name, value |> Obj.repr)
     };
   let ex: example = {name, func: code, metadata: md};
   grp |> ExampleGroup.addExample(ex)

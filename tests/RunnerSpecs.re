@@ -131,9 +131,9 @@ describe("Runner", [
           |> withExample(
             ~metadata=("data3", "test"),
             ~code=passingExample(~onRun=ctx => {
-              append(ctx |> TestContext.get("data1"));
-              append(ctx |> TestContext.get("data2"));
-              append(ctx |> TestContext.get("data3"));
+              append(ctx |> Ctx.get("data1"));
+              append(ctx |> Ctx.get("data2"));
+              append(ctx |> Ctx.get("data3"));
             },()));
       let outerGroup =
         anExampleGroup

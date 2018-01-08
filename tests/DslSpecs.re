@@ -1,5 +1,5 @@
+open Respect;
 open Respect.Dsl;
-
 open Respect.Matcher;
 
 let dummy = (_) => ();
@@ -22,7 +22,7 @@ describe(
       (_) => {
         let grp = parse(("name", "value") **> describe("Group", [beforeEach(dummy)]));
         let expected =
-          TestContext.ContextMap.empty |> TestContext.ContextMap.add("name", Obj.repr("value"));
+          Ctx.ContextMap.empty |> Ctx.ContextMap.add("name", Obj.repr("value"));
         grp.metadata |> should(equal(expected))
       }
     ),
@@ -31,7 +31,7 @@ describe(
       (_) => {
         let grp = parse(describe("Group", [("name", "value") **> it("has example", (_) => ())]));
         let expected =
-          TestContext.ContextMap.empty |> TestContext.ContextMap.add("name", Obj.repr("value"));
+          Ctx.ContextMap.empty |> Ctx.ContextMap.add("name", Obj.repr("value"));
         (grp.examples |> List.hd).metadata |> should(equal(expected))
       }
     ),
@@ -40,7 +40,7 @@ describe(
       (_) => {
         let grp = parse(("name", "value") **> describe("Group", [beforeEach(dummy)]));
         let expected =
-          TestContext.ContextMap.empty |> TestContext.ContextMap.add("name", Obj.repr("value"));
+          Ctx.ContextMap.empty |> Ctx.ContextMap.add("name", Obj.repr("value"));
         grp.metadata |> should(equal(expected))
       }
     )
