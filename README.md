@@ -9,22 +9,15 @@ I base this on a lot of experience I gained from a similar project for F#, FSpec
 
 This project is still in a very early stage, so use at your own risk.
 
+More [Documentation](https://github.com/PeteProgrammer/respect/blob/master/Documentation.md)
+
 ## Latest changes
 
-### 0.4.0 - 0.4.3
+### 0.5.0
 
- * Added `Ctx.tryGet` - Returns `None` if no entry with the specified key exists
-     in the context data.
- * Added Respect.Ctx module as alias for TestContext
- * TestContext.don function to help accept a done callback from setup functions
- * Refactor: Test context is now represented by an object instead of a mutable
-     record. But the TestContext module still has functions for operating on the
-     actual context, so existing code should be compatible.
- * Testcontext subject: The subject is a function that evaluates to an actual
-     value when requested. The function receives the test context as input. You
-     can assign the subject in a parent group, and modify the context in a child
-     group.
- * TextContext.map: Allows you to easily modify objects in the context.
+ * Breaking change: Renamed `TestContext` module to `Respect_ctx` and made it
+     available under `Respect.Ctx`. A quick fix to get your code to compile
+     is to add the this to your own modules `module TestContext = Respect.Ctx`.
 
 ## TODO
 
@@ -42,4 +35,5 @@ This project is still in a very early stage, so use at your own risk.
 Although, I had learned from many mistakes when building FSpec, there are some
 problems that demand different solutions in Reason/Bucklescript. Async support
 in particular.
+
 

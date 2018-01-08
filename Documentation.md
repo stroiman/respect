@@ -1,3 +1,5 @@
+# Respect documentation
+
 ## Installation
 
 This guide will help you get `Respect` and having a test-watcher setup.
