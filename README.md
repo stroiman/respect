@@ -46,7 +46,8 @@ in particular.
 
 ## Latest changes
 
-If you are
+This section just contains the most recent changes. Find the full version
+history [here](https://github.com/PeteProgrammer/respect/blob/master/CHANGELOG.md).
 
 ### 0.5.0
 
