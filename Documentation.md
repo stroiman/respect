@@ -245,70 +245,6 @@ let equal = (expected, actual) =>
 
 So it takes an expected value and returns a matcher based on this.
 
-## Test Metadata
-
-You can add metadata to a group or an example. And if you have metadata on a
-parent group, you can override it in a child group. The metadata is added using
-the strange looking `**>` operator (I chose this because the `**` makes it right
-associative, which I need in order to avoid parenthesis hell, and the `>` is a
-visual aid, that it binds with the group to come.
-indicating that the metadata binds to the group/example to come.
-
-The interesting thing is that the metadata is initialized before the example
-starts executing, which means that metadata specified on an example can effect
-the setup code executed in a parent group. The following example shows how:
-
-```
-open Respect.Dsl.Async;
-module Ctx = Respect.Ctx;
-
-describe("Register user", [
-  beforeEach ((ctx,don) => {
-    ctx
-      |> Ctx.get("userName")
-      |> /* do something interesting with the user */
-    don()
-  }),
-
-  ("userName", "johndoe") **>
-  describe("A valid user name was entered", [
-    it("Correctly registers the user", (ctx,don) => {
-       ...
-       don
-    })
-  ]),
-
-  ("userName", "!@#$") **>
-  describe("An invalid user name was entered", [
-    it("Returns a sensible error message", (ctx, don) => {
-       ...
-       don ()
-    })
-  ])
-]) |> register
-```
-
-Multiple pieces of metadata can be added to the same example or group, and
-values can be overwritten in nested groups/examples.
-
-```
-("userName", "johndoe") **>
-("password", "agoodlongpassword*42!X") **>
-describe("Register user", [
-  it("succeeds when username and password are ok", (ctx, don) => {
-  }),
-
-  ("userName", "!@#$") **>
-  it("Rejects the attempt when username is invalid", (ctx, don) => {
-    ...
-  }),
-
-  ("password", "xyz") **>
-  it("Rejects the attempt when password is too short", (ctx, don) => {
-  })
-]) |> register
-```
-
 ### Composing Matchers
 
 Matchers can be composed using the "fish" operator `>=>`, so a `matcher('a,'b)`
@@ -356,4 +292,252 @@ describe("UserRepository", [
     ])
   ])
 ]) |> register;
+```
+
+## Test Metadata
+
+You can add metadata to a group or an example. And if you have metadata on a
+parent group, you can override it in a child group. The metadata is added using
+the strange looking `**>` operator (I chose this because the `**` makes it right
+associative, which I need in order to avoid parenthesis hell, and the `>` is a
+visual aid, that it binds with the group to come.
+indicating that the metadata binds to the group/example to come.
+
+The interesting thing is that the metadata is initialized before the example
+starts executing, which means that metadata specified on an example can effect
+the setup code executed in a parent group. The following example shows how:
+
+```
+open Respect.Dsl.Async;
+module Ctx = Respect.Ctx;
+
+describe("Register user", [
+  beforeEach ((ctx,don) => {
+    ctx
+      |> Ctx.get("userName")
+      |> /* do something interesting with the user */
+    don()
+  }),
+
+  ("userName", "johndoe") **>
+  describe("A valid user name was entered", [
+    it("Correctly registers the user", (ctx,don) => {
+       ...
+       don
+    })
+  ]),
+
+  ("userName", "!@#$") **>
+  describe("An invalid user name was entered", [
+    it("Returns a sensible error message", (ctx, don) => {
+       ...
+       don ()
+    })
+  ])
+]) |> register
+```
+
+Multiple pieces of metadata can be added to the same example or group, and
+values can be overwritten in nested groups/examples.
+
+```
+/* Pass sensible defaults for a happy case to the root example */
+("userName", "johndoe") **>
+("password", "agoodlongpassword*42!X") **>
+describe("Register user", [
+  beforeEach((ctx, don) => {
+    let userName = ctx |> Ctx.get("userName");
+    let password = ctx |> Ctx.get("password");
+  }),
+
+  it("succeeds when username and password are ok", (ctx, don) => {
+  }),
+
+  /* Create various examples that deviate from the happy case to test
+     that the code handles these cases correctly */
+
+  ("userName", "!@#$") **>
+  it("Rejects the attempt when username is invalid", (ctx, don) => {
+    ...
+  }),
+
+  ("password", "xyz") **>
+  it("Rejects the attempt when password is too short", (ctx, don) => {
+  })
+]) |> register
+```
+
+## TestContext
+
+The context object passed to both setup functions and test functions provides a
+place setup code can place data that can be read by examples or setup code in
+nested contexts.
+
+Currently, the data in the test context is mutable, but that may change.
+
+Currently, all data stored in the test context is stored as `Obj.t`.
+Unfortunately, there is no run-time checking that when you retrieve data from
+the context, that the types match. For example the following code will neither
+generate a compile, nor a run-time error.
+
+```
+let newCtx = ctx |> Ctx.add("key", 42);
+let s : string = newCtx |> Ctx.get("key");
+```
+
+We just assigned a number to a string value. This will probably generate a hard
+to diagnose exception further down the line. And a particular annoying exception
+because the bug is in the test code, not the production code.
+
+I would appriciate all ideas to come with a better suggesion for a better type
+safe data store. Perhaps polymorphic variants?
+
+#### Subject
+
+A special property exists on the test context, the `subject` which is meant to
+mean "the thing that we are verifying". The subject is a lazily evaluated value,
+and the evaluation receives the test context as input. Therefore a setup
+function in a parent group can setup the subject, and setup functions in nested
+groups can modify the input.
+
+This shows how (this is for the sake of the example only, there are nicer ways
+of doing this).
+```
+describe("create user", [
+  beforeEach((ctx) => {
+    ctx
+      |> Ctx.setSubj(ctx => {
+          let username : string = ctx |> Ctx.get("username");
+          let password : string = ctx |> Ctx.get("password");
+          createUser({username, password});
+          /* Assume that createuser returns an Ok/Error indicating the result */
+      })
+      |> Ctx.don
+  }),
+
+  describe("Valid credentials", [
+    /* this nested context modifies the context before the subject evaluation */
+    beforeEach(ctx => {
+      ctx
+        |> Ctx.add("username", "validusername")
+        |> Ctx.add("password", "validpassword")
+    })
+
+    it("successfully creates the user", ctx => {
+      ctx
+        |> Ctx.subject
+        |> shoulda(equal(Ok({...})))
+    })
+  ])
+])
+```
+
+#### Ctx module functions
+
+```
+
+/* The don function helps return a curried function for the done callback */
+beforeEach(ctx => ctx |> Ctx.don)
+
+/* Adding data to the context */
+beforeEach(ctx => ctx
+  |> Ctx.add("Key", value)
+  |> Ctx.add("key", value)
+  |> Ctx.don);
+
+/* Retrieving data */
+let x : string = ctx |> Ctx.get("key")
+
+/* Retrieve Some(_) if a key exists, None if it doesn't */
+let x : option(string) = ctx |> Ctx.tryGet("key")
+
+/* Mapping data in the context */
+describe("email is empty", [
+  beforeEach(ctx => ctx
+    |> Ctx.map("user", user => {...user, email: ""})
+    |> Ctx.don)
+])
+
+/* Setting the subject
+beforeEach(ctx => ctx
+  |> Ctx.setSubj(ctx => {
+    Login(ctx |> Ctx.get("username"), ctx |> Ctx.get("password"))
+  })
+  |> Ctx.don)
+
+/* Getting the subject */
+let subject : option(Domain.user) = ctx |> Ctx.subject;
+```
+
+#### Test context as an object
+
+The test context itself is implemented as an object, meaning that you can use
+the object methods to access the data.
+
+This could be changed however, so I would recommend using the module function.
+
+```
+ctx#add("key", value)
+/* add returns the context, making it possible to chain calls to #add */
+ctx#add("key", value)#add("key2", value2) /* do notice the bug mentioned below */
+
+let s: string = ctx#get("key")
+/* get will automatically cast to whatever type you assign it to */
+
+let maybeS: option(string) = ctx#tryGet("key")
+/* returns Some(_) if the key exists, otherwise returns None */
+
+ctx#setSub(ctx => Login(ctx#get("username"), ctx#get("password")))
+/* Sets the function that will be used to evaluate the subject. The function
+ receives the context (which may have been updated) when it is eventually run */
+
+let s = ctx#subject()
+/* Evaluates and retrieves the subject. The value is cached, so multiple calls
+will return the same value. */
+
+ctx#don()
+/* helper for ending a setup function */
+
+beforeEach(ctx => {
+  ctx
+    #add("key", 42)
+    #don()
+})
+```
+
+### Extending the context
+
+One technique to help reduce code duplication in the test is to write a
+specialed context module in a code file with tests, and add useful functions to
+this.
+
+```
+open Respect.Dsl.Async;
+open Respect.Matcher;
+
+module Ctx = {
+  include Respect.Ctx;
+
+  let createUser = ctx => {
+    open CreateUserModule;
+    let username = ctx |> get("username");
+    let password = ctx |> get("password");
+    createUser({username, password})
+  }
+};
+
+("username", "goodusername") **>
+("password", "goodpassword") **>
+describe("createUser", [
+  it("succeeds when user is a success", ctx =>
+    ctx
+      |> Ctx.createUser
+      |> shoulda(beSuccess))
+
+  ("username", "") **>
+  it("fails when username is empty", ctx =>
+    ctx
+      |> Ctx.createUser
+      |> shoulda(beFailure))
+])
 ```
