@@ -213,7 +213,7 @@ Please be aware that the matcher syntax is likely to change, but I will try
 to keep backward compatibility by moving alternate matcher framework into separate
 modules.
 
-## Matchers (breaking change in version 0.2)
+## Matchers
 
 The matchers framework is based on these types:
 
@@ -249,8 +249,9 @@ So it takes an expected value and returns a matcher based on this.
 
 You can add metadata to a group or an example. And if you have metadata on a
 parent group, you can override it in a child group. The metadata is added using
-the strange looking _**>_ operator (I chose this because the _*_ makes it right
-associative, which I need in order to avoid parenthesis hell, and the _>_ helps
+the strange looking `**>` operator (I chose this because the `**` makes it right
+associative, which I need in order to avoid parenthesis hell, and the `>` is a
+visual aid, that it binds with the group to come.
 indicating that the metadata binds to the group/example to come.
 
 The interesting thing is that the metadata is initialized before the example
@@ -259,11 +260,13 @@ the setup code executed in a parent group. The following example shows how:
 
 ```
 open Respect.Dsl.Async;
+module Ctx = Respect.Ctx;
 
 describe("Register user", [
   beforeEach ((ctx,don) => {
-    ctx |> TestContext.get("userName")
-    |> /* do something interesting with the user */
+    ctx
+      |> Ctx.get("userName")
+      |> /* do something interesting with the user */
     don()
   }),
 
@@ -285,10 +288,31 @@ describe("Register user", [
 ]) |> register
 ```
 
+Multiple pieces of metadata can be added to the same example or group, and
+values can be overwritten in nested groups/examples.
+
+```
+("userName", "johndoe") **>
+("password", "agoodlongpassword*42!X") **>
+describe("Register user", [
+  it("succeeds when username and password are ok", (ctx, don) => {
+  }),
+
+  ("userName", "!@#$") **>
+  it("Rejects the attempt when username is invalid", (ctx, don) => {
+    ...
+  }),
+
+  ("password", "xyz") **>
+  it("Rejects the attempt when password is too short", (ctx, don) => {
+  })
+]) |> register
+```
+
 ### Composing Matchers
 
-Matchers can be composed using the "fish" operator `>=>`, so a `matcher 'a 'b`
-can be composed with a `matcher 'b 'c` into a `matcher 'a 'c`.
+Matchers can be composed using the "fish" operator `>=>`, so a `matcher('a,'b)`
+can be composed with a `matcher('b,'c)` into a `matcher('a,'c)`.
 
 This can be particularly useful when the value passed with the success is
 different from the actual value passed to the matcher. Here is an example from a
@@ -296,26 +320,23 @@ piece of production code I am working on:
 
 ```
 /* General types to handle errors and async code */
-type result 'a 'b =
-  | Ok 'a
-  | Error 'b;
-type async 'a = ('a => unit) => unit;
-type asyncResult 'a 'b = async (result 'a 'b);
+type result('a, 'b) = Js.Result.t('a, 'b) = | Ok('a) | Error('b);
+
+type async('a) = ('a => unit) => unit;
+type asyncResult('a,'b) = async(result('a,'b));
 
 /* Specific error types returned by repository layer */
 type databaseError 'id =
-| DocumentNotFound string 'id
-| MongoErr MongoError.t;
+  | DocumentNotFound(string,'id)
+  | MongoErr(MongoError.t);
 
 /* This is a matcher that verifies that an async function fails. "actual" is a
 function that takes a result callback */
-let asyncFail actual => {
-  AsyncMatchResult (fun cb => {
-    actual
-      |> AsyncResult.run (fun
-      | Error y => cb (MatchSuccess y)
-      | Ok y => cb (MatchFailure (Obj.repr y)));
-      });
+let asyncFail = actual => cb => {
+  actual
+    |> AsyncResult.run (fun
+    | Error(y) => cb(MatchSuccess(y))
+    | Ok(y) => cb(MatchFailure (Obj.repr(y))));
 };
 ```
 
@@ -331,12 +352,8 @@ describe("UserRepository", [
         let id = "dummy";
         UserRepository.getById(id)
           |> shoulda (asyncFail >=> (equal (DocumentNotFound("users",id))))
-          /* `asyncFail` assumes that `getById(id)` returns a returns a function
-              that accepts a callback, and verifies that the callback was called
-              with `Error(...)` */
       })
     ])
   ])
 ]) |> register;
 ```
-
