@@ -338,7 +338,3 @@ describe("UserRepository", [
 ]) |> register;
 ```
 
-The operator supports combining sync and async matchers as you like - but they
-are not properly tested in the framework. Only the above case async>=>sync
-matcher has been tested in the wild.
-
