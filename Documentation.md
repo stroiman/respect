@@ -10,7 +10,7 @@ easily added with the _nodemon_ package.
 
 First, add _respect_, the npm package is named "re-respect"
 
-```
+```Reason
 npm install --save-dev re-respect
 ```
 
@@ -21,7 +21,7 @@ You also need to add a _tests_ folder to contain the tests. At this early time
 of writing, the only place that Respect searches for tests files is in the
 _tests_ folder, so be sure that is the exact name of the folder.
 
-```
+```Reason
 "files": [
   {"dir": "src"},
   {"dir": "tests",
@@ -34,7 +34,7 @@ _tests_ folder, so be sure that is the exact name of the folder.
 
 Create a skeleton test, "./tests/tests.re":
 
-```
+```Reason
 open Respect.Dsl;
 
 describe "My first test" [
@@ -47,7 +47,7 @@ global test group.
 
 Now, let's add a test target to _package.json_
 
-```
+```Reason
 "scripts": {
    ...
    "test": "respect"
@@ -62,13 +62,13 @@ The npm package _nodemon_ can trigger running _.js_ files when the file system
 changes. We can use this to implement filesystem watcher functionality. First
 install the package
 
-```
+```Reason
 npm install --save-dev nodemon
 ```
 
 And then add a script to the _package.json_ file
 
-```
+```Reason
   "scripts": {
     ...
     "test:watch": "nodemon node_modules/re-respect/bin/respect"
@@ -87,13 +87,13 @@ in order to have full watcher implementation. We can create an npm script that
 does both of these tasks with the help of the npm package _npm-run-all_, which
 allows parallel execution of multiple scripts.
 
-```
+```Reason
 npm install --save-dev npm-run-all
 ```
 
 In the _package.json_ file, add a new script:
 
-```
+```Reason
   "scripts": {
     ...
     "dev": "run-p watch test:watch"
@@ -112,7 +112,7 @@ Instead of using mutating nested function calls, _Respect_ uses immutable data
 structures for building up the test context and tests. Therefore, the
 `desribe`-operation takes nested operations in a list.
 
-```
+```Reason
 register(
   describe("Parent context", [
     it("has some test", (_) =>
@@ -140,7 +140,7 @@ Often it is useful to write pending tests, small skeleton desrciptions of
 functionality you need to implement. This can turn the test framework into a
 small todo list:
 
-```
+```Reason
 describe("Register user", [
   pending("Returns Ok(user) if registration succeeded"),
   pending("Returns Error(DuplicateEmail) if email already registered"),
@@ -156,7 +156,7 @@ Async support is currently best implemented by opening `Respect.Dsl.Async`.
 I believe that this will be in time be the the only "official" Dsl to end with,
 but maybe with helper functions to write sync examples if you need to.
 
-```
+```Reason
 open Respect.Dsl.Async;
 
 describe ("Parent context", [
@@ -173,14 +173,14 @@ describe ("Parent context", [
 There is currently async matcher support through the function `shoulda`
 (should-async). The function has the signature:
 
-```
+```Reason
 (matcher : matcher 'a 'b) => (actual : 'a) => (cb : doneCallback) => unit
 ```
 
 This signature plays nicely with the callback allowing you to write tests like
 this:
 
-```
+```Reason
 describe("Register User", [
   describe("Posting valid user", [
     it("creates a user", (_) => {
@@ -217,7 +217,7 @@ modules.
 
 The matchers framework is based on these types:
 
-```
+```Reason
 type matchResult('t) =
   | MatchSuccess('t)
   | MatchFailure(Obj.t);
@@ -231,14 +231,14 @@ So a matcher takes an actual value and provides a matchresult asyncrounously
 through a callback. Matchers that evaluate synchronously can use these helper
 functions
 
-```
+```Reason
 let matchSuccess = (a) => cb => cb(MatchSuccess(a));
 let matchFailure = (a) => cb => cb(MatchFailure(a |> Obj.repr));
 ```
 
 So if we look at the `equal` match constructor:
 
-```
+```Reason
 let equal = (expected, actual) =>
   actual == expected ? matchSuccess(actual) : matchFailure(expected);
 ```
@@ -254,7 +254,7 @@ This can be particularly useful when the value passed with the success is
 different from the actual value passed to the matcher. Here is an example from a
 piece of production code I am working on:
 
-```
+```Reason
 /* General types to handle errors and async code */
 type result('a, 'b) = Js.Result.t('a, 'b) = | Ok('a) | Error('b);
 
@@ -280,7 +280,7 @@ The interesting thing is that the `asyncFail` matcher passes the error to the
 `MatchResult` constructor, to be used by a new matcher. In this tests we compose
 it with a new matcher that verifies that we actually get the expected error.
 
-```
+```Reason
 describe("UserRepository", [
   describe("findById", [
     describe("record doesn't exist", [
@@ -307,7 +307,7 @@ The interesting thing is that the metadata is initialized before the example
 starts executing, which means that metadata specified on an example can effect
 the setup code executed in a parent group. The following example shows how:
 
-```
+```Reason
 open Respect.Dsl.Async;
 module Ctx = Respect.Ctx;
 
@@ -340,7 +340,7 @@ describe("Register user", [
 Multiple pieces of metadata can be added to the same example or group, and
 values can be overwritten in nested groups/examples.
 
-```
+```Reason
 /* Pass sensible defaults for a happy case to the root example */
 ("userName", "johndoe") **>
 ("password", "agoodlongpassword*42!X") **>
@@ -380,7 +380,7 @@ Unfortunately, there is no run-time checking that when you retrieve data from
 the context, that the types match. For example the following code will neither
 generate a compile, nor a run-time error.
 
-```
+```Reason
 let newCtx = ctx |> Ctx.add("key", 42);
 let s : string = newCtx |> Ctx.get("key");
 ```
@@ -402,7 +402,7 @@ groups can modify the input.
 
 This shows how (this is for the sake of the example only, there are nicer ways
 of doing this).
-```
+```Reason
 describe("create user", [
   beforeEach((ctx) => {
     ctx
@@ -434,7 +434,7 @@ describe("create user", [
 
 #### Ctx module functions
 
-```
+```Reason
 
 /* The don function helps return a curried function for the done callback */
 beforeEach(ctx => ctx |> Ctx.don)
@@ -458,7 +458,7 @@ describe("email is empty", [
     |> Ctx.don)
 ])
 
-/* Setting the subject
+/* Setting the subject */
 beforeEach(ctx => ctx
   |> Ctx.setSubj(ctx => {
     Login(ctx |> Ctx.get("username"), ctx |> Ctx.get("password"))
@@ -476,7 +476,7 @@ the object methods to access the data.
 
 This could be changed however, so I would recommend using the module function.
 
-```
+```Reason
 ctx#add("key", value)
 /* add returns the context, making it possible to chain calls to #add */
 ctx#add("key", value)#add("key2", value2) /* do notice the bug mentioned below */
@@ -511,7 +511,7 @@ One technique to help reduce code duplication in the test is to write a
 specialed context module in a code file with tests, and add useful functions to
 this.
 
-```
+```Reason
 open Respect.Dsl.Async;
 open Respect.Matcher;
 
