@@ -1,5 +1,7 @@
 # ReSpect
 
+BDD-style test framework for Reason/bucklescript
+
 [![Build Status](https://travis-ci.org/PeteProgrammer/respect.svg?branch=master)](https://travis-ci.org/PeteProgrammer/respect)
 
 This is an RSpec inspired test framework for ReasonML/OCaml/Bucklescript. The
