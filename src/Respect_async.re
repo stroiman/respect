@@ -74,3 +74,7 @@ let from_callback = (fn: ('a => unit) => unit) : t('a) =>
   ((successCb, _)) => fn(successCb);
 
 let run = (~fe=?, f, x) => x((f, fe |> Js.Option.getWithDefault((_) => ())));
+
+module Infix = {
+  let ( >>= ) = (x, f) => x |> bind(~f);
+}

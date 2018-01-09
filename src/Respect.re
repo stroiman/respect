@@ -162,18 +162,21 @@ module Runner = {
       |> As.map(~f=logError);
   };
   let rec run = (grp, parents) : As.t(executionResult) => {
+    open As.Infix;
     let groupStack = [grp, ...parents];
     let rec iter = (state, tests) : As.t(executionResult) =>
       switch tests {
       | [] => As.return(state)
-      | [ex, ...rest] => runExample(groupStack, ex) |> As.bind(~f=result => iter(mergeResult(result, state), rest))
+      | [ex, ...rest] => runExample(groupStack, ex) 
+        >>= result => iter(mergeResult(state, result), rest)
       };
     let rec iterGrps = (state, grps) : As.t(executionResult) =>
       switch grps {
       | [] => As.return(state)
-      | [grp, ...rest] => run(grp, groupStack) |> As.bind(~f=(result) => iterGrps(mergeResult(result, state), rest))
+      | [grp, ...rest] => run(grp, groupStack) 
+        >>= result => iterGrps(mergeResult(result, state), rest)
       };
-    iter(TestSucceeded, grp.examples) |> As.bind(~f=(exampleResults) => iterGrps(exampleResults, grp.children))
+    iter(TestSucceeded, grp.examples) >>= exampleResults => iterGrps(exampleResults, grp.children)
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
