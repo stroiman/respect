@@ -36,7 +36,27 @@ let bePending = actual => {
 };
 
 describe("Runner", [
-  describe("Test Result", [
+  describe("Group has 3 passing, two pending, and one failing test", [
+    beforeEach((ctx,don) => {
+      let ex = anExampleGroup
+        |> withExample( ~code = passingExample())
+        |> withExample( ~code = passingExample())
+        |> withExample( ~code = passingExample())
+        |> withExample( ~code = pendingExample())
+        |> withExample( ~code = pendingExample())
+        |> withExample( ~code = failingExample());
+      run(ex)
+        |> Async.run(x => {
+          ctx |> Ctx.add("result", x) |> ignore;
+          don()
+        });
+    }),
+
+    it("reports 3 passed", ctx => {
+      open Respect.Runner.RunResult;
+      ctx |> Ctx.get("result") |> getNoOfPassedTests |> shoulda(equal(3))
+    }),
+    
     it("Is success when all tests succeed", (_) => {
       let ex = anExampleGroup
         |> withExample( ~code = passingExample())

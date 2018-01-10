@@ -115,14 +115,30 @@ module Runner = {
     };
 
   type runResult = {
-    testResult: Domain.executionResult
+    testResult: Domain.executionResult,
+    noOfPassed: int,
+    noOfPending: int,
+    noOfFailed: int
   };
 
   module RunResult = {
     type t = runResult;
-    let empty = { testResult: TestSucceeded };
-    let recordResult = (result, carry) => { testResult: mergeResult(result, carry.testResult) };
-    let merge = (a, b) => { testResult: mergeResult(a.testResult, b.testResult) };
+    let empty = { testResult: TestSucceeded, noOfPassed: 0, noOfPending: 0, noOfFailed: 0 };
+    let recordResult = (result, carry) => { 
+      let tmp = { ...carry, testResult: mergeResult(result, carry.testResult) };
+      switch(result) {
+        | TestSucceeded => { ...tmp, noOfPassed: tmp.noOfPassed + 1 }
+        | TestPending => { ...tmp, noOfPending: tmp.noOfPending + 1 }
+        | TestFailed => { ...tmp, noOfFailed: tmp.noOfFailed + 1 }
+      }
+    };
+    let merge = (a, b) => { 
+      testResult: mergeResult(a.testResult, b.testResult),
+        noOfPassed: a.noOfPassed + b.noOfPassed,
+        noOfPending: a.noOfPending + b.noOfPending,
+        noOfFailed: a.noOfFailed + b.noOfFailed
+    };
+    let getNoOfPassedTests = x => x.noOfPassed;
   };
 
   let runExample = (groupStack, ex: example) : As.t(executionResult) => {
