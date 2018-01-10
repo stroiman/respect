@@ -2,13 +2,38 @@ module As = Respect_async;
 module Ctx = Respect.Ctx;
 open Respect.Dsl.Async;
 open Respect.Domain;
-open Respect.Runner;
+/*open Respect.Runner;*/
 open Respect.Matcher;
 open TestHelpers;
 open TestHelpers.AsyncMatchers;
 exception MockFailure(string);
 
+let run = Respect.Runner.run;
 let runAndReturn = (res,examples) => run(examples) |> Async.map(~f=(_) => res^);
+
+let beSuccess = actual => {
+  open Respect.Runner;
+  switch(actual.testResult) {
+    | TestSucceeded => matchSuccess(actual)
+    | _ => matchFailure(actual, actual)
+  };
+};
+
+let beFailure = actual => {
+  open Respect.Runner;
+  switch(actual.testResult) {
+    | TestFailed => matchSuccess(actual)
+    | _ => matchFailure(actual, actual)
+  };
+};
+
+let bePending = actual => {
+  open Respect.Runner;
+  switch(actual.testResult) {
+    | TestPending => matchSuccess(actual)
+    | _ => matchFailure(actual, actual)
+  };
+};
 
 describe("Runner", [
   describe("Test Result", [
@@ -16,20 +41,20 @@ describe("Runner", [
       let ex = anExampleGroup
         |> withExample( ~code = passingExample())
         |> withExample( ~code = passingExample());
-      run(ex) |> shoulda(asyncResolve >=> equal(TestSucceeded))
+      run(ex) |> shoulda(asyncResolve >=> beSuccess)
     }),
     it("Is pending when one test is pending", (_) => {
       let ex = anExampleGroup
         |> withExample( ~code = passingExample() )
         |> withExample( ~code = pendingExample() );
-      run(ex) |> shoulda(asyncResolve >=> equal(TestPending))
+      run(ex) |> shoulda(asyncResolve >=> bePending)
     }),
     it("Is a failure when one test is pending", (_) => {
       let ex = anExampleGroup
         |> withExample( ~code = passingExample() )
         |> withExample( ~code = pendingExample() )
         |> withExample( ~code = failingExample() );
-      run(ex) |> shoulda(asyncResolve >=> equal(TestFailed))
+      run(ex) |> shoulda(asyncResolve >=> beFailure)
     })
   ]),
 
@@ -149,7 +174,7 @@ describe("Runner", [
   describe("example throws an exception", [
     it("returns an error message", (_) => {
       let ex = anExampleGroup |> withExampleCode((_) => raise(MockFailure("")));
-      run(ex) |> shoulda(asyncResolve >=> equal(TestFailed))
+      run(ex) |> shoulda(asyncResolve >=> beFailure)
     })
   ]),
 

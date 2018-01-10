@@ -104,6 +104,7 @@ module Dsl = {
 module Runner = {
   open Domain;
   open Dsl;
+
   let mergeResult = (a, b) =>
     switch (a, b) {
     | (TestFailed, _) => TestFailed
@@ -112,6 +113,18 @@ module Runner = {
     | (_, TestPending) => TestPending
     | (TestSucceeded, TestSucceeded) => TestSucceeded
     };
+
+  type runResult = {
+    testResult: Domain.executionResult
+  };
+
+  module RunResult = {
+    type t = runResult;
+    let empty = { testResult: TestSucceeded };
+    let recordResult = (result, carry) => { testResult: mergeResult(result, carry.testResult) };
+    let merge = (a, b) => { testResult: mergeResult(a.testResult, b.testResult) };
+  };
+
   let runExample = (groupStack, ex: example) : As.t(executionResult) => {
     let ctx = {
       let mdStack = groupStack |> List.map((x) => x.metadata);
@@ -161,29 +174,31 @@ module Runner = {
       |> As.tryCatch(~f=(_) => Some(TestFailed))
       |> As.map(~f=logError);
   };
-  let rec run = (grp, parents) : As.t(executionResult) => {
+  let rec run = (grp, parents) : As.t(runResult) => {
     open As.Infix;
     let groupStack = [grp, ...parents];
-    let rec iter = (state, tests) : As.t(executionResult) =>
+    let rec iter = (state : RunResult.t, tests) : As.t(runResult) =>
       switch tests {
       | [] => As.return(state)
       | [ex, ...rest] => runExample(groupStack, ex) 
-        >>= result => iter(mergeResult(state, result), rest)
+        >>= result => iter(RunResult.recordResult(result, state), rest)
       };
-    let rec iterGrps = (state, grps) : As.t(executionResult) =>
+    let rec iterGrps = (state, grps) : As.t(runResult) =>
       switch grps {
       | [] => As.return(state)
       | [grp, ...rest] => run(grp, groupStack) 
-        >>= result => iterGrps(mergeResult(result, state), rest)
+        >>= result => iterGrps(RunResult.merge(result, state), rest)
+      /*| [grp, ...rest] => run(grp, groupStack) */
+        /*>>= result => iterGrps(RunResult.mergeResult(result, state), rest)*/
       };
-    iter(TestSucceeded, grp.examples) >>= exampleResults => iterGrps(exampleResults, grp.children)
+    iter(RunResult.empty, grp.examples) >>= exampleResults => iterGrps(exampleResults, grp.children)
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
      parents */
-  let run = (grp) : As.t(executionResult) => run(grp, []);
+  let run = (grp) : As.t(runResult) => run(grp, []);
   /* Runs all tests registered in the root example group */
-  let runRoot = () : As.t(executionResult) => run(rootContext^);
+  let runRoot = () : As.t(runResult) => run(rootContext^);
 };
 
 module TestResult = {
