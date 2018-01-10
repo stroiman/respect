@@ -51,6 +51,11 @@ in particular.
 This section just contains the most recent changes. Find the full version
 history [here](https://github.com/PeteProgrammer/respect/blob/master/CHANGELOG.md).
 
+### 0.5.1
+
+ * No of passed, pending, and failed tests are written to the console after the
+     test run.
+
 ### 0.5.0
 
  * Breaking change: Renamed `TestContext` module to `Respect_ctx` and made it
