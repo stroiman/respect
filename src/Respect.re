@@ -139,6 +139,8 @@ module Runner = {
         noOfFailed: a.noOfFailed + b.noOfFailed
     };
     let getNoOfPassedTests = x => x.noOfPassed;
+    let getNoOfPendingTests = x => x.noOfPending;
+    let getNoOfFailedTests = x => x.noOfFailed;
   };
 
   let runExample = (groupStack, ex: example) : As.t(executionResult) => {
