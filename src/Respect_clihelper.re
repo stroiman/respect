@@ -12,7 +12,7 @@ let runRoot = (callback) =>
         result |> RunResult.getNoOfFailedTests |> Js.Int.toString,
         "failed tests"
       |]);
-      if (result.testResult |> Respect.TestResult.isSuccess) {
+      if (result |> Respect.TestResult.isSuccess) {
         Js.log("Test run succeeded");
         callback(0)
       } else {

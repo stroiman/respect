@@ -13,7 +13,7 @@ let runAndReturn = (res,examples) => run(examples) |> Async.map(~f=(_) => res^);
 
 let beSuccess = actual => {
   open Respect.Runner;
-  switch(actual.testResult) {
+  switch(actual |> RunResult.getResult) {
     | TestSucceeded => matchSuccess(actual)
     | _ => matchFailure(actual, actual)
   };
@@ -21,7 +21,7 @@ let beSuccess = actual => {
 
 let beFailure = actual => {
   open Respect.Runner;
-  switch(actual.testResult) {
+  switch(actual |> RunResult.getResult) {
     | TestFailed => matchSuccess(actual)
     | _ => matchFailure(actual, actual)
   };
@@ -29,7 +29,7 @@ let beFailure = actual => {
 
 let bePending = actual => {
   open Respect.Runner;
-  switch(actual.testResult) {
+  switch(actual |> RunResult.getResult) {
     | TestPending => matchSuccess(actual)
     | _ => matchFailure(actual, actual)
   };
