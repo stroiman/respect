@@ -25,6 +25,10 @@ changes occur from time to time.
  * Each example or group can have metadata atteched that will be made available
      through the context object. This can be used modify what happens in the
      setup code.
+     
+## Getting Started
+
+Run `npm install --save re-respect` and add `re-respect` to the `bs-dependencies` in `bsconfig.json`.
 
 For more info, see the full [Documentation](https://github.com/PeteProgrammer/respect/blob/master/Documentation.md)
 
