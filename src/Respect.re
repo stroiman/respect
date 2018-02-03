@@ -1,109 +1,26 @@
 module Matcher = Respect_matcher;
 module MatchersV2 = Respect_matchersV2;
 module Callbacks = Respect_callbacks;
-module As = Respect_async;
+module Async = Respect_async;
 module Ctx = Respect_ctx;
+module Domain = Respect_domain;
+module Dsl = Respect_dsl;
 
 /*
    Module Domain describes the internal structure that represents examples
    and groups of examples.
 */
-module Domain = {
-  /* Represents the outcome of running a test */
-  type executionResult =
-    | TestPending
-    | TestSucceeded
-    | TestFailed;
-  type executionCallback = executionResult => unit;
-  /* Internal implementation, a nicer callback is exposed via the DSL */
-  type testFunc = (Ctx.t, executionCallback) => unit;
-  type example = {
-    name: string,
-    func: testFunc,
-    metadata: Ctx.contextMap
-  };
-  type setup =
-    | Setup(testFunc);
-  /* A group of examples, and nested groups */
-  type exampleGroup = {
-    name: string,
-    children: list(exampleGroup),
-    setups: list(setup),
-    examples: list(example),
-    metadata: Ctx.contextMap
-  };
-  module ExampleGroup = {
-    let empty = {name: "", children: [], setups: [], examples: [], metadata: Ctx.ContextMap.empty};
-    let addChild = (child, root) => {...root, children: root.children @ [child]};
-    let addExample = (ex, grp) => {...grp, examples: grp.examples @ [ex]};
-    let addSetup = (code, grp) => {...grp, setups: grp.setups @ [code]};
-  };
-};
+
 
 /*
    The Dsl module contains the constructs you use to describe examples and
    groups, as well as functions to map this to domain types
  */
-module Dsl = {
-  open Domain;
-  let wrapTest = (fn: Ctx.t => unit) : testFunc =>
-    (ctx, callback) =>
-      try {
-        fn(ctx);
-        callback(TestSucceeded)
-      } {
-      | _ => callback(TestFailed)
-      };
-  type doneCallback = Callbacks.doneCallback;
-  let wrapW = (fn: (Ctx.t, doneCallback) => unit) : testFunc =>
-    (ctx: Ctx.t, callback) =>
-      fn(
-        ctx,
-        (~err=?, ()) =>
-          switch err {
-          | None => callback(TestSucceeded)
-          | Some(_) => callback(TestFailed)
-          }
-      );
-  type operation =
-    | WrapMetadata((string, Obj.t), operation)
-    | AddChildGroupOperation(string, list(operation))
-    | AddExampleOperation(string, testFunc)
-    | AddSetupOperation(testFunc);
-  let it = (name, ex: Ctx.t => unit) => AddExampleOperation(name, wrapTest(ex));
-  let it_a = (name, ex) => AddExampleOperation(name, ex);
-  let it_w = (name, ex) => AddExampleOperation(name, wrapW(ex));
-  let describe = (name, ops) => AddChildGroupOperation(name, ops);
-  let beforeEach = (fn) => AddSetupOperation(wrapTest(fn));
-  let beforeEach_w = (fn) => AddSetupOperation(wrapW(fn));
-  let rec applyOperation = (operation, context, metadata) =>
-    switch operation {
-    | WrapMetadata((key, value), op) => applyOperation(op, context, metadata |> Ctx.ContextMap.add(key, value))
-    | AddSetupOperation(fn) => context |> ExampleGroup.addSetup(Setup(fn))
-    | AddExampleOperation(name, func) => {...context, examples: [{name, func, metadata}, ...context.examples]}
-    | AddChildGroupOperation(name, ops) =>
-      let initial = {...ExampleGroup.empty, name, metadata};
-      let newChild = List.fold_left((grp, op) => applyOperation(op, grp, Ctx.ContextMap.empty), initial, ops);
-      let newChild' = {...newChild, children: newChild.children |> List.rev, examples: newChild.examples |> List.rev};
-      {...context, children: [newChild', ...context.children]}
-    };
-  let applyOperation = (operation, context) => applyOperation(operation, context, Ctx.ContextMap.empty);
-  let rootContext = ref(ExampleGroup.empty);
-  let register = (op) => rootContext := rootContext^ |> applyOperation(op);
-  let ( **> ) = ((key, value), op) => WrapMetadata((key, Obj.repr(value)), op);
-  module Async = {
-    let ( **> ) = ( **> );
-    let it = it_w;
-    let describe = describe;
-    let register = register;
-    let beforeEach = beforeEach_w;
-    let pending = name => AddExampleOperation(name, (_,cb) => cb(TestPending));
-  };
-};
 
 module Runner = {
   open Domain;
   open Dsl;
+  module Async=Respect_async;
 
   let mergeResult = (a, b) =>
     switch (a, b) {
@@ -143,7 +60,7 @@ module Runner = {
     }
   };
 
-  let runExample = (groupStack, ex: example) : As.t(executionResult) => {
+  let runExample = (groupStack, ex: example) : Async.t(executionResult) => {
     let ctx = {
       let mdStack = groupStack |> List.map((x) => x.metadata);
       let mdStack' = [ex.metadata, ...mdStack];
@@ -168,42 +85,42 @@ module Runner = {
       r;
     };
 
-    let doRun = () => ex.func(ctx) |> As.from_callback;
+    let doRun = () => ex.func(ctx) |> Async.from_callback;
 
-    let rec runParentGroups = (grps) : As.t(executionResult) =>
+    let rec runParentGroups = (grps) : Async.t(executionResult) =>
       switch grps {
       | [] => doRun()
       | [grp, ...parents] =>
-        let rec runSetups = (setups) : As.t(executionResult) => 
+        let rec runSetups = (setups) : Async.t(executionResult) => 
           switch(setups) {
           | [] => runParentGroups(parents)
           | [Setup(x), ...rest] => 
-              x(ctx) |> As.from_callback |> As.bind(
+              x(ctx) |> Async.from_callback |> Async.bind(
                 ~f=fun
-                | TestFailed => As.return(TestFailed)
-                | TestPending => As.return(TestPending)
+                | TestFailed => Async.return(TestFailed)
+                | TestPending => Async.return(TestPending)
                 | TestSucceeded => runSetups(rest)
               )
           };
         runSetups(grp.setups)
       };
     runParentGroups(groupStack |> List.rev)
-      |> As.timeout(As.Seconds(1))
-      |> As.tryCatch(~f=(_) => Some(TestFailed))
-      |> As.map(~f=logError);
+      |> Async.timeout(Async.Seconds(1))
+      |> Async.tryCatch(~f=(_) => Some(TestFailed))
+      |> Async.map(~f=logError);
   };
-  let rec run = (grp, parents) : As.t(runResult) => {
-    open As.Infix;
+  let rec run = (grp, parents) : Async.t(runResult) => {
+    open Async.Infix;
     let groupStack = [grp, ...parents];
-    let rec iter = (state : RunResult.t, tests) : As.t(runResult) =>
+    let rec iter = (state : RunResult.t, tests) : Async.t(runResult) =>
       switch tests {
-      | [] => As.return(state)
+      | [] => Async.return(state)
       | [ex, ...rest] => runExample(groupStack, ex) 
         >>= result => iter(RunResult.recordResult(result, state), rest)
       };
-    let rec iterGrps = (state, grps) : As.t(runResult) =>
+    let rec iterGrps = (state, grps) : Async.t(runResult) =>
       switch grps {
-      | [] => As.return(state)
+      | [] => Async.return(state)
       | [grp, ...rest] => run(grp, groupStack) 
         >>= result => iterGrps(RunResult.merge(result, state), rest)
       /*| [grp, ...rest] => run(grp, groupStack) */
@@ -214,9 +131,9 @@ module Runner = {
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
      parents */
-  let run = (grp) : As.t(runResult) => run(grp, []);
+  let run = (grp) : Async.t(runResult) => run(grp, []);
   /* Runs all tests registered in the root example group */
-  let runRoot = () : As.t(runResult) => run(rootContext^);
+  let runRoot = () : Async.t(runResult) => run(rootContext^);
 };
 
 module TestResult = {
