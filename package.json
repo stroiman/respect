@@ -1,5 +1,5 @@
 {
-  "name": "re-respect",
+  "name": "@stroiman/respect",
   "version": "0.5.2",
   "scripts": {
     "clean": "bsb -clean-world",
