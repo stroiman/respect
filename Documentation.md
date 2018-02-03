@@ -8,10 +8,10 @@ easily added with the _nodemon_ package.
 
 ### Basic installation
 
-First, add _respect_, the npm package is named "re-respect"
+First, add _respect_, the npm package is named "@stroiman/respect"
 
 ```Reason
-npm install --save-dev re-respect
+npm install --save-dev @stroiman/respect
 ```
 
 As this is a package with Reason code, you need to add a reference to the
@@ -28,7 +28,7 @@ _tests_ folder, so be sure that is the exact name of the folder.
    "type": "dev" }
 ],
 "bs-dev-dependencies": [
-  "re-respect"
+  "@stroiman/respect"
 ]
 ```
 
@@ -71,7 +71,7 @@ And then add a script to the _package.json_ file
 ```Reason
   "scripts": {
     ...
-    "test:watch": "nodemon node_modules/re-respect/bin/respect"
+    "test:watch": "nodemon node_modules/.bin/respect"
   }
 ```
 

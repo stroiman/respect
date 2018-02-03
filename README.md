@@ -35,7 +35,7 @@ changes occur from time to time.
 
 ## Getting Started
 
-Run `npm install --save re-respect` and add `re-respect` to the `bs-dependencies` in `bsconfig.json`.
+Run `npm install --save @stroiman/respect` and add `@stroiman/respect` to the `bs-dependencies` in `bsconfig.json`.
 
 For more info, see the full [Documentation](https://github.com/PeteProgrammer/respect/blob/master/Documentation.md)
 
