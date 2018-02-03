@@ -2,7 +2,14 @@
 
 BDD-style test framework for Reason/bucklescript
 
-[![Build Status](https://travis-ci.org/PeteProgrammer/respect.svg?branch=master)](https://travis-ci.org/PeteProgrammer/respect)
+__Attention__ - This library has recently moved.
+
+_The NPM package moved from `re-respect` to `@stroiman/respect`._
+
+_The source repo was moved from github.com/PeteProgrammer/respect to
+github.com/stroiman/respect_
+
+[![Build Status](https://travis-ci.org/stroiman/respect.svg?branch=master)](https://travis-ci.org/stroiman/respect)
 
 This is an RSpec inspired test framework for ReasonML/OCaml/Bucklescript. The
 runner uses raw javascript code, so it will only run in node environments at the moment.
@@ -25,7 +32,7 @@ changes occur from time to time.
  * Each example or group can have metadata atteched that will be made available
      through the context object. This can be used modify what happens in the
      setup code.
-     
+
 ## Getting Started
 
 Run `npm install --save re-respect` and add `re-respect` to the `bs-dependencies` in `bsconfig.json`.
