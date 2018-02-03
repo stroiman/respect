@@ -9,7 +9,7 @@ open TestHelpers.AsyncMatchers;
 exception MockFailure(string);
 
 let run = Respect.Runner.run;
-let runAndReturn = (res,examples) => run(examples) |> Async.map(~f=(_) => res^);
+let runAndReturn = (res,examples) => run(examples) |> Async.map((_) => res^);
 
 let beSuccess = actual => {
   open Respect.Runner;

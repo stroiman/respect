@@ -5,8 +5,6 @@ open TestHelpers.AsyncMatchers;
 exception Dummy;
 exception Dummy2;
 
-module Async = Respect_async;
-
 [@bs.module "errorFunctions"]
 external asyncThrowingFunction : (int, (Js.null(Js.Exn.t), int) => unit) => unit = "";
 [@bs.module "errorFunctions"]
@@ -29,13 +27,13 @@ describe("Async module", [
   describe("map", [
     it("eventually returns the modified value", (_) => {
       Async.return(42) 
-        |> Async.map(~f=x => x+1)
+        |> Async.map(x => x+1)
         |> shoulda(asyncResolve >=> equal(43))
     }),
 
     it("eventually returns error if mapping function throws", (_) => {
       Async.return(44) 
-        |> Async.map(~f=(_) => {raise(Dummy);})
+        |> Async.map((_) => {raise(Dummy);})
         |> shoulda(asyncThrow >=> equal(Dummy))
     })
   ]),
@@ -43,13 +41,13 @@ describe("Async module", [
   describe("bind", [
     it("eventually returns the bound value", (_) => {
       Async.return(42) 
-        |> Async.bind(~f=x => Async.return(x+1))
+        |> Async.bind(x => Async.return(x+1))
         |> shoulda(asyncResolve >=> equal(43))
     }),
 
     it("eventually returns error if bound function throws", (_) => {
       Async.return(42) 
-        |> Async.bind(~f=(_) => { raise(Dummy) })
+        |> Async.bind((_) => { raise(Dummy) })
         |> shoulda(asyncThrow >=> equal(Dummy));
     })
   ]),
@@ -82,15 +80,15 @@ describe("Async module", [
   describe("tryCatch", [
     it("async resolve Some value", (_) => {
       Async.return(43)
-        |> Async.map(~f=(_) => { raise(Dummy2) })
-        |> Async.tryCatch(~f=fun | Dummy => Some(42) | _ => None)
+        |> Async.map((_) => { raise(Dummy2) })
+        |> Async.tryCatch(fun | Dummy => Some(42) | _ => None)
         |> shoulda(asyncThrow >=> equal(Dummy2))
     }),
 
     it("async throws None value", (_) => {
       Async.return(43)
-        |> Async.map(~f=(_) => { raise(Dummy) })
-        |> Async.tryCatch(~f=fun | Dummy => Some(42) | _ => None)
+        |> Async.map((_) => { raise(Dummy) })
+        |> Async.tryCatch(fun | Dummy => Some(42) | _ => None)
         |> shoulda(asyncResolve >=> equal(42))
     }),
   ]),

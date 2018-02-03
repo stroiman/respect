@@ -2,7 +2,7 @@ open Respect.Runner;
 
 let runRoot = (callback) =>
   runRoot ()
-  |> Respect_async.run(
+  |> Async.run(
     (result : RunResult.t) => {
       Js.logMany([| 
         result |> RunResult.getNoOfPassedTests |> Js.Int.toString

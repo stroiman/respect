@@ -1,10 +1,15 @@
 module Matcher = Respect_matcher;
 module MatchersV2 = Respect_matchersV2;
 module Callbacks = Respect_callbacks;
-module Async = Respect_async;
 module Ctx = Respect_ctx;
 module Domain = Respect_domain;
 module Dsl = Respect_dsl;
+
+module AsyncInfix = {
+  open Async;
+
+  let ( >>= ) = (x,f) => x |> bind(f);
+};
 
 /*
    Module Domain describes the internal structure that represents examples
@@ -19,8 +24,6 @@ module Dsl = Respect_dsl;
 
 module Runner = {
   open Domain;
-  open Dsl;
-  module Async=Respect_async;
 
   let mergeResult = (a, b) =>
     switch (a, b) {
@@ -96,7 +99,7 @@ module Runner = {
           | [] => runParentGroups(parents)
           | [Setup(x), ...rest] => 
               x(ctx) |> Async.from_callback |> Async.bind(
-                ~f=fun
+                fun
                 | TestFailed => Async.return(TestFailed)
                 | TestPending => Async.return(TestPending)
                 | TestSucceeded => runSetups(rest)
@@ -106,11 +109,11 @@ module Runner = {
       };
     runParentGroups(groupStack |> List.rev)
       |> Async.timeout(Async.Seconds(1))
-      |> Async.tryCatch(~f=(_) => Some(TestFailed))
-      |> Async.map(~f=logError);
+      |> Async.tryCatch((_) => Some(TestFailed))
+      |> Async.map(logError);
   };
   let rec run = (grp, parents) : Async.t(runResult) => {
-    open Async.Infix;
+    open AsyncInfix;
     let groupStack = [grp, ...parents];
     let rec iter = (state : RunResult.t, tests) : Async.t(runResult) =>
       switch tests {
@@ -133,7 +136,7 @@ module Runner = {
      parents */
   let run = (grp) : Async.t(runResult) => run(grp, []);
   /* Runs all tests registered in the root example group */
-  let runRoot = () : Async.t(runResult) => run(rootContext^);
+  let runRoot = () : Async.t(runResult) => run(Dsl.rootContext^);
 };
 
 module TestResult = {

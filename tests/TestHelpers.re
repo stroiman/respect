@@ -1,5 +1,4 @@
 open Respect;
-open Respect.Dsl;
 open Respect.Domain;
 
 let passingExample = (~onRun=?,()) => (ctx, cb) => {
@@ -28,7 +27,7 @@ let pendingExample = (~onRun=?,()) => (ctx, cb) => {
 
 let anExampleWithCode = (fn) => {
   name: "dummy",
-  func: wrapTest(fn),
+  func: Dsl.wrapTest(fn),
   metadata: Ctx.ContextMap.empty
 };
 
@@ -61,7 +60,8 @@ let withExample = (~metadata=?, ~name="Dummy example", ~code=passingExample(), g
 };
 
 module MatchHelper = {
-let shouldMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
+  open Respect_callbacks;
+  let shouldMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
   fn(fun (~err=?,()) => {
     switch(err) {
       | None => don();
@@ -81,7 +81,6 @@ let shouldNotMatch = (fn:doneCallback => unit) => (don:doneCallback) => {
 };
 
 module AsyncMatchers = {
-  module Async = Respect_async;
   open Respect.Matcher;
 
   let asyncResolve = (actual:Async.t('a)) => cb => {

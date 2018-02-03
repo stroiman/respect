@@ -1,7 +1,5 @@
 open Respect_callbacks;
 
-module Async = Respect_async;
-
 type matchResult('a) =
   | MatchSuccess('a)
   | MatchFailure(Obj.t);
