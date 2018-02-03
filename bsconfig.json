@@ -1,5 +1,5 @@
 {
-  "name": "@stroiman/respect",
+  "name": "re-respect",
   "refmt": 3,
   "sources": [
     {"dir": "bin"},
