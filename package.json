@@ -35,5 +35,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/PeteProgrammer/respect.git"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
