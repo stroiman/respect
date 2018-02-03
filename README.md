@@ -2,12 +2,10 @@
 
 BDD-style test framework for Reason/bucklescript
 
-__Attention__ - This library has recently moved.
+__Attention__ - _The NPM package has moved to `@stroiman/respect`. Remember to
+update both _package.json_ AND `bsconfig.json`._
 
-_The NPM package moved from `re-respect` to `@stroiman/respect`._
-
-_The source repo was moved from github.com/PeteProgrammer/respect to
-github.com/stroiman/respect_
+_The source repo was moved from to `https://github.com/stroiman/respect.git`_
 
 [![Build Status](https://travis-ci.org/stroiman/respect.svg?branch=master)](https://travis-ci.org/stroiman/respect)
 
