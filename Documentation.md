@@ -10,18 +10,16 @@ easily added with the _nodemon_ package.
 
 First, add _respect_, the npm package is named "@stroiman/respect"
 
-```Reason
+```shell
 npm install --save-dev @stroiman/respect
 ```
 
 As this is a package with Reason code, you need to add a reference to the
 package in the _bsconfig.json_ file, as well.
 
-You also need to add a _tests_ folder to contain the tests. At this early time
-of writing, the only place that Respect searches for tests files is in the
-_tests_ folder, so be sure that is the exact name of the folder.
+You also need a folder to contain your test files.
 
-```Reason
+```json
 "files": [
   {"dir": "src"},
   {"dir": "tests",
@@ -42,19 +40,22 @@ describe "My first test" [
 ] |> register
 ```
 
-The `register` call is necessary at this early stage, it adds the specs to one
-global test group.
+The functions `describe` and `it` helps build an immutable data structure
+describing your tests. `register` adds this to a global list, so they can be
+found by the runner.
 
-Now, let's add a test target to _package.json_
+Now, let's add a test target to _package.json_ to call the test runner. The
+runner needs to find the compiled `.js` files. By default, it looks in
+`lib/js/tests/**/*.js` - here I have made it explicit:
 
 ```Reason
 "scripts": {
    ...
-   "test": "respect"
+   "test": "respect lib/js/tests/**/*.js"
 }
 ```
 
-And now, you can run the tests with `npm run test`
+Execute `npm run build` to build the code, and `npm run test` to run the tests.
 
 ### Adding test watcher functionality
 
@@ -66,7 +67,8 @@ install the package
 npm install --save-dev nodemon
 ```
 
-And then add a script to the _package.json_ file
+And then add a script to the _package.json_ file (remember to add a file-glob if
+the tests are not in `lib/js/tests`.
 
 ```Reason
   "scripts": {
@@ -105,6 +107,11 @@ parallel.
 
 Now you can run `npm run dev` in one terminal, and it will compile reason files,
 and run tests, as files are written on disk.
+
+**Caution** When implementing this target, you can experience false positives.
+The tests are executed whenever a `.js` file has changed. And sometimes when the
+bucklescript build fails, it still touches some of the `.js` files, causing a
+test run to execute, when we don't want it to.
 
 ## Syntax
 
