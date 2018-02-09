@@ -1,5 +1,14 @@
 # ReSpect Version History
 
+### 0.6.0
+
+ * cli now allows you to specify test files on the command line. (was hardcoded
+     to `lib/js/tests/*.js` before.
+
+### 0.5.4
+
+ * Moved package from `re-respect` to `@stroiman/respect`.
+
 ### 0.5.1
 
  * No of passed, pending, and failed tests are written to the console after the
