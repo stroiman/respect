@@ -45,8 +45,8 @@ let shoulda = (matcher, actual, don: Respect_callbacks.doneCallback) => {
     | MatchSuccess(_) => don()
     | MatchFailure(actual,expected) =>
       Js.log("Match failed");
-      Js.log(("Expected: ", expected));
-      Js.log(("Actual: ", actual));
+      Js.log2("Expected: ", expected);
+      Js.log2("Actual: ", actual);
       don(~err="match failed", ())
     };
   (matcher(actual))(handleMatch)
