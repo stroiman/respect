@@ -33,7 +33,7 @@ changes occur from time to time.
 
 ## Getting Started
 
-Run `npm install --save @stroiman/respect` and add `@stroiman/respect` to the `bs-dependencies` in `bsconfig.json`.
+Run `npm install --save-dev @stroiman/respect` and add `@stroiman/respect` to the `bs-dev-dependencies` in `bsconfig.json`.
 
 For more info, see the full [Documentation](https://github.com/PeteProgrammer/respect/blob/master/Documentation.md)
 
