@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+### 0.7.0
+
+ * Changed dependency from `re-sync` to `@stroiman/async`
+
 ### 0.6.0
 
  * cli now allows you to specify test files on the command line. (was hardcoded
