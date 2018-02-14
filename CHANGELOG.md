@@ -3,6 +3,7 @@
 ### 0.7.0
 
  * Changed dependency from `re-sync` to `@stroiman/async`
+ * Build agains bs-platform 2.2.1
 
 ### 0.6.0
 
