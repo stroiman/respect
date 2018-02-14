@@ -121,15 +121,13 @@ module Runner = {
       | [ex, ...rest] => runExample(groupStack, ex) 
         >>= result => iter(RunResult.recordResult(result, state), rest)
       };
-    let rec iterGrps = (state, grps) : Async.t(runResult) =>
-      switch grps {
-      | [] => Async.return(state)
-      | [grp, ...rest] => run(grp, groupStack) 
-        >>= result => iterGrps(RunResult.merge(result, state), rest)
-      /*| [grp, ...rest] => run(grp, groupStack) */
-        /*>>= result => iterGrps(RunResult.mergeResult(result, state), rest)*/
-      };
-    iter(RunResult.empty, grp.examples) >>= exampleResults => iterGrps(exampleResults, grp.children)
+    let childGroupResult =
+      grp.children 
+        |> List.map(grp => run(grp, groupStack))
+        |> Async.all
+        |> Async.map(List.fold_left(RunResult.merge, RunResult.empty));
+    let exampleResults = iter(RunResult.empty, grp.examples);
+    Async.both(exampleResults, childGroupResult) |> Async.map(((x,y)) => RunResult.merge(x,y))
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
