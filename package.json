@@ -1,6 +1,6 @@
 {
   "name": "@stroiman/respect",
-  "version": "0.7.0",
+  "version": "0.8.0-rc.0",
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
