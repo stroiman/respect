@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+### 0.8.0 (?)
+
+ * Support for parallel test execution
+
 ### 0.7.0
 
  * Changed dependency from `re-sync` to `@stroiman/async`
