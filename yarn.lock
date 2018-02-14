@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@stroiman/async@0.5.2":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@stroiman/async/-/async-0.5.2.tgz#e1414725404646b977ded90377631700849b4113"
+"@stroiman/async@^0.6":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@stroiman/async/-/async-0.6.0.tgz#e85c15a09eccc5783fa6003ba482a0fe050e798b"
 
 abbrev@1:
   version "1.1.1"
