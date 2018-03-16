@@ -1,5 +1,10 @@
 module Ctx = Respect_ctx;
 
+/*
+   Module Domain describes the internal structure that represents examples
+   and groups of examples.
+*/
+
 /* Represents the outcome of running a test */
 type executionResult =
 | TestPending

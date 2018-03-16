@@ -11,17 +11,6 @@ module AsyncInfix = {
   let ( >>= ) = (x,f) => x |> bind(f);
 };
 
-/*
-   Module Domain describes the internal structure that represents examples
-   and groups of examples.
-*/
-
-
-/*
-   The Dsl module contains the constructs you use to describe examples and
-   groups, as well as functions to map this to domain types
- */
-
 module Runner = {
   open Domain;
 

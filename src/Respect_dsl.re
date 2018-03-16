@@ -1,5 +1,10 @@
 open Respect_domain;
 
+/*
+   The Dsl module contains the constructs you use to describe examples and
+   groups, as well as functions to map this to domain types
+ */
+
 let wrapTest = (fn: Ctx.t => unit) : testFunc =>
   (ctx, callback) =>
     try {
