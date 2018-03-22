@@ -1,9 +1,13 @@
 # ReSpect Version History
 
+### 0.7.1
+
+ * Attempt to fix missing documentation, links, etc. on npmjs.com
+
 ### 0.7.0
 
  * Changed dependency from `re-sync` to `@stroiman/async`
- * Build agains bs-platform 2.2.1
+ * Build against bs-platform 2.2.1
 
 ### 0.6.0
 
