@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+###
+
+ * Remove compiler warnings caused by module aliases
+
 ### 0.7.2
 
  * Update `@stroiman/async` to 0.7

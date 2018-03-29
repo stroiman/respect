@@ -1,4 +1,3 @@
-module As = Respect_async;
 module Ctx = Respect.Ctx;
 open Respect.Dsl.Async;
 open Respect.Domain;
