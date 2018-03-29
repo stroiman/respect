@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+### 0.7.2
+
+ * Update `@stroiman/async` to 0.7
+
 ### 0.7.1
 
  * Attempt to fix missing documentation, links, etc. on npmjs.com
