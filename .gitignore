@@ -18,6 +18,7 @@
 *.annot
 *.cmj
 *.bak
+lib/js
 lib/bs
 lib/ocaml
 *.mlast
