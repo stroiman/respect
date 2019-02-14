@@ -1,8 +1,10 @@
 # ReSpect Version History
 
-###
+### 0.8.0
 
  * Remove compiler warnings caused by module aliases
+ * Support being used in projects compiled with inSource: true
+ * Fix source file glob
 
 ### 0.7.2
 

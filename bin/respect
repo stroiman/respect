@@ -1,8 +1,14 @@
 #!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
 const cli = require('cli');
 const glob = require('glob');
-const path = require('path');
-const runner = require('../lib/js/src/Respect_clihelper');
+
+// The placement of compiled reason .re and .ml files depends on
+// the compilation settings of the including project
+const inSource = fs.existsSync(path.join(__dirname, '../src/Respect_clihelper.js'));
+const cliHelper = inSource ? '../src/Respect_clihelper' : '../lib/js/src/Respect_clihelper';
+const runner = require(cliHelper);
 
 const usage = `respect [OPTIONS] [TEST FILES]
   
@@ -14,9 +20,13 @@ const options = cli
   .enable('glob')
   .parse({ });
 
+
+let defaultFiles = inSource ? "tests/**/*.js" : "lib/js/tests/**/*.js";
 let files = cli.args;
 if (files.length === 0) {
-  files = glob.sync("lib/js/tests/**/*.js");
+  files = glob.sync(defaultFiles);
+} else {
+  files = files.map(f => glob.sync(f)).reduce(concat, []);
 }
 
 for (let f of files) {
