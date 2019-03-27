@@ -220,6 +220,32 @@ Please be aware that the matcher syntax is likely to change, but I will try
 to keep backward compatibility by moving alternate matcher framework into separate
 modules.
 
+## Focused/skipped examples
+
+You can focus an example with the `focus` function. When there are focused
+examples, only those will be executed.
+
+You can skip an example with the `skip` function. Skipped examples will not run.
+
+You can apply the functions to both examples, and example groups.
+
+```reason
+describe("Group with focused examples", [
+  focus @@
+  it("This example is focused", ...),
+
+  skip @@
+  it("This example is skipped", ...),
+
+  focus @@
+  describe("Group with more focused examples", [
+    it("This example is focused", ...),
+
+    it("This example is also focused", ...),
+  ])
+]) |> register
+```
+
 ## Matchers
 
 The matchers framework is based on these types:
