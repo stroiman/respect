@@ -1,5 +1,9 @@
 # ReSpect Version History
 
+### next
+
+ * Add support for focused and skipped examples
+
 ### 0.8.0
 
  * Remove compiler warnings caused by module aliases
