@@ -34,6 +34,17 @@ let bePending = actual => {
   };
 };
 
+describe("Focused examples", [
+  it("starts with a failing test", (_) => {
+      let ex = anExampleGroup
+        |> withExample( ~code = passingExample(), ~focused=true)
+        |> withExample( ~code = passingExample());
+      run(ex) 
+        |> Async.map((x: Respect.Runner.runResult) => x.noOfPassed)
+        |> shoulda(asyncResolve >=> equal(1));
+  }),
+]) |> register;
+
 describe("Runner", [
   describe("Group has 3 passing, two pending, and one failing test", [
     beforeEach((ctx,don) => {

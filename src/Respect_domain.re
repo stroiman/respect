@@ -14,7 +14,8 @@ type testFunc = (Respect_ctx.t, executionCallback) => unit;
 type example = {
   name: string,
   func: testFunc,
-  metadata: Respect_ctx.contextMap
+  metadata: Respect_ctx.contextMap,
+  focused: bool,
 };
 type setup =
 | Setup(testFunc);
@@ -31,5 +32,13 @@ module ExampleGroup = {
   let addChild = (child, root) => {...root, children: root.children @ [child]};
   let addExample = (ex, grp) => {...grp, examples: grp.examples @ [ex]};
   let addSetup = (code, grp) => {...grp, setups: grp.setups @ [code]};
+
+  let rec hasFocusedExamples = grp => {
+    let tmp = List.fold_left((acc, ex) => ex.focused ? true : acc, false, grp.examples);
+    List.fold_left((acc, child) => hasFocusedExamples(child) ? true : acc, tmp, grp.children);
+  }
 };
 
+module Example = {
+  let isFocused = x => x.focused;
+};

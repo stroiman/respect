@@ -28,7 +28,8 @@ let pendingExample = (~onRun=?,()) => (ctx, cb) => {
 let anExampleWithCode = (fn) => {
   name: "dummy",
   func: Dsl.wrapTest(fn),
-  metadata: Ctx.ContextMap.empty
+  metadata: Ctx.ContextMap.empty,
+  focused: false,
 };
 
 let passingSetup = passingExample;
@@ -48,14 +49,14 @@ let withSetup = (code) => ExampleGroup.addSetup(Setup(code));
 
 let withChildGroup = (child, grp) => grp |> ExampleGroup.addChild(child);
 
-let withExample = (~metadata=?, ~name="Dummy example", ~code=passingExample(), grp) => {
+let withExample = (~metadata=?, ~name="Dummy example", ~focused=false, ~code=passingExample(), grp) => {
   let md =
     switch metadata {
     | None => Ctx.ContextMap.empty
     | Some((name, value)) =>
       Ctx.ContextMap.empty |> Ctx.ContextMap.add(name, value |> Obj.repr)
     };
-  let ex: example = {name, func: code, metadata: md};
+  let ex: example = {name, func: code, metadata: md, focused};
   grp |> ExampleGroup.addExample(ex)
 };
 

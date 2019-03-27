@@ -101,11 +101,11 @@ module Runner = {
       |> Async.tryCatch((_) => Some(TestFailed))
       |> Async.map(logError);
   };
-  let rec run = (grp, parents) : Async.t(runResult) => {
+  let rec run = (grp, filter, parents) : Async.t(runResult) => {
     open AsyncInfix;
     let groupStack = [grp, ...parents];
     let rec iter = (state : RunResult.t, tests) : Async.t(runResult) =>
-      switch tests {
+      switch (tests |> List.filter(filter)) {
       | [] => Async.return(state)
       | [ex, ...rest] => runExample(groupStack, ex) 
         >>= result => iter(RunResult.recordResult(result, state), rest)
@@ -113,17 +113,18 @@ module Runner = {
     let rec iterGrps = (state, grps) : Async.t(runResult) =>
       switch grps {
       | [] => Async.return(state)
-      | [grp, ...rest] => run(grp, groupStack) 
+      | [grp, ...rest] => run(grp, filter, groupStack) 
         >>= result => iterGrps(RunResult.merge(result, state), rest)
-      /*| [grp, ...rest] => run(grp, groupStack) */
-        /*>>= result => iterGrps(RunResult.mergeResult(result, state), rest)*/
       };
     iter(RunResult.empty, grp.examples) >>= exampleResults => iterGrps(exampleResults, grp.children)
   };
   /* Runs all tests in a single example group. Since a group has no knowledge
      of its parents, using this function will not run setup code registered in
      parents */
-  let run = (grp) : Async.t(runResult) => run(grp, []);
+  let run = (grp) : Async.t(runResult) => {
+    let filter = ExampleGroup.hasFocusedExamples(grp) ? Example.isFocused : (_ => true);
+    run(grp, filter, []);
+  }
   /* Runs all tests registered in the root example group */
   let runRoot = () : Async.t(runResult) => run(Dsl.rootContext^);
 };
