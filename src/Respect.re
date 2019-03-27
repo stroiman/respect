@@ -122,7 +122,9 @@ module Runner = {
      of its parents, using this function will not run setup code registered in
      parents */
   let run = (grp) : Async.t(runResult) => {
-    let filter = ExampleGroup.hasFocusedExamples(grp) ? Example.isFocused : (_ => true);
+    let filter = ExampleGroup.hasFocusedExamples(grp) ? 
+      (x => Example.isFocused(x) && !Example.isSkipped(x)) : 
+        (x => !Example.isSkipped(x));
     run(grp, filter, []);
   }
   /* Runs all tests registered in the root example group */

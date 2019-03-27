@@ -34,10 +34,18 @@ let bePending = actual => {
   };
 };
 
-describe("Focused examples", [
-  it("starts with a failing test", (_) => {
+describe("Example filtering", [
+  it("only runs focused examples, if present", (_) => {
       let ex = anExampleGroup
         |> withExample( ~code = passingExample(), ~focused=true)
+        |> withExample( ~code = passingExample());
+      run(ex) 
+        |> Async.map((x: Respect.Runner.runResult) => x.noOfPassed)
+        |> shoulda(asyncResolve >=> equal(1));
+  }),
+  it("skips skipped examples", (_) => {
+      let ex = anExampleGroup
+        |> withExample( ~code = passingExample(), ~skipped=true)
         |> withExample( ~code = passingExample());
       run(ex) 
         |> Async.map((x: Respect.Runner.runResult) => x.noOfPassed)

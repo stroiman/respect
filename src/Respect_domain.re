@@ -16,6 +16,7 @@ type example = {
   func: testFunc,
   metadata: Respect_ctx.contextMap,
   focused: bool,
+  skipped: bool,
 };
 type setup =
 | Setup(testFunc);
@@ -41,4 +42,5 @@ module ExampleGroup = {
 
 module Example = {
   let isFocused = x => x.focused;
+  let isSkipped = x => x.skipped;
 };

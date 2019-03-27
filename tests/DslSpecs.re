@@ -50,6 +50,26 @@ describe(
       grp.metadata |> should(equal(expected));
     }),
     describe(
+      "Skipped",
+      [
+        it("is true when example has 'skip @@'", _ => {
+          let grp =
+            parse(
+              describe("group", [skip @@ it("has example", exampleCode)]),
+            );
+          grp.examples
+          |> List.map(Domain.Example.isSkipped)
+          |> should(equal([true]));
+        }),
+        it("is false when example doesn't have `skip @@`", _ => {
+          let grp =
+            parse(describe("group", [it("has example", exampleCode)]));
+          grp.examples
+          |> List.map(Domain.Example.isSkipped)
+          |> should(equal([false]));
+        }),
+      ],
+    ),describe(
       "Focused",
       [
         it("is true when example has 'focus @@'", _ => {
