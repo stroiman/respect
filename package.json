@@ -24,7 +24,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "bs-platform": "^4.0.0",
+    "bs-platform": "5",
     "nodemon": "^1.12.1",
     "npm-run-all": "^4.1.1"
   },
