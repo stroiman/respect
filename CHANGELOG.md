@@ -1,8 +1,9 @@
 # ReSpect Version History
 
-### next
+### 0.9.0
 
  * Add support for focused and skipped examples
+ * Upgrade to bs-platform@5
 
 ### 0.8.0
 
