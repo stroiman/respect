@@ -1,5 +1,10 @@
 # ReSpect Version History
 
+### 0.10.0
+
+  * Create a `Dsl.Base` functor - which is used to create `Dsl.Sync` and
+      `Dsl.Async`.
+
 ### 0.9.0
 
  * Add support for focused and skipped examples

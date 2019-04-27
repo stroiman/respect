@@ -160,9 +160,6 @@ Pending tests will not result in failure when running the tests.
 
 Async support is currently best implemented by opening `Respect.Dsl.Async`.
 
-I believe that this will be in time be the the only "official" Dsl to end with,
-but maybe with helper functions to write sync examples if you need to.
-
 ```Reason
 open Respect.Dsl.Async;
 
