@@ -33,7 +33,7 @@ You also need a folder to contain your test files.
 Create a skeleton test, "./tests/tests.re":
 
 ```Reason
-open Respect.Dsl;
+open Respect.Dsl.Sync;
 
 describe "My first test" [
   it "runs" (fun _ => {()})
@@ -63,7 +63,7 @@ The npm package _nodemon_ can trigger running _.js_ files when the file system
 changes. We can use this to implement filesystem watcher functionality. First
 install the package
 
-```Reason
+```sh
 npm install --save-dev nodemon
 ```
 
@@ -89,13 +89,13 @@ in order to have full watcher implementation. We can create an npm script that
 does both of these tasks with the help of the npm package _npm-run-all_, which
 allows parallel execution of multiple scripts.
 
-```Reason
+```sh
 npm install --save-dev npm-run-all
 ```
 
 In the _package.json_ file, add a new script:
 
-```Reason
+```json
   "scripts": {
     ...
     "dev": "run-p watch test:watch"
@@ -111,7 +111,7 @@ and run tests, as files are written on disk.
 **Caution** When implementing this target, you can experience false positives.
 The tests are executed whenever a `.js` file has changed. And sometimes when the
 bucklescript build fails, it still touches some of the `.js` files, causing a
-test run to execute, when we don't want it to.
+test run to execute, but it's running on old files.
 
 ## Syntax
 
@@ -143,7 +143,7 @@ of examples to an implicit root group.
 
 ### Pending tests
 
-Often it is useful to write pending tests, small skeleton desrciptions of
+Often it is useful to write pending tests, small skeleton descriptions of
 functionality you need to implement. This can turn the test framework into a
 small todo list:
 
@@ -325,6 +325,10 @@ describe("UserRepository", [
 ```
 
 ## Test Metadata
+
+**Note** I'm working at completely replacing this feature. This is greatly
+inspired by my solution for FSpec, where it wasn't ideeal. But it's even worse
+for OCaml/Reason, as there is no runtime type information.
 
 You can add metadata to a group or an example. And if you have metadata on a
 parent group, you can override it in a child group. The metadata is added using
