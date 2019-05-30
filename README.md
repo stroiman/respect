@@ -35,7 +35,29 @@ changes occur from time to time.
 
 Run `npm install --save-dev @stroiman/respect` and add `@stroiman/respect` to the `bs-dev-dependencies` in `bsconfig.json`.
 
-For more info, see the full [Documentation](https://github.com/PeteProgrammer/respect/blob/master/Documentation.md)
+```Reason
+open Respect.Dsl.Sync;
+
+describe "My first test" [
+  it "should be a failing test" (fun _ => {
+    1 |> should (equal (2))
+  })
+] |> register
+```
+
+Add a test script to `package.json`:
+
+```json
+"scripts": {
+   ...
+   "test": "respect"
+}
+```
+
+Build the code and run the tests with: `npm run test`
+
+For more info, including tips on test watcher functionality, see the full 
+[Documentation](https://github.com/PeteProgrammer/respect/blob/master/Documentation.md)
 
 ## TODO
 

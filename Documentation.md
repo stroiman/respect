@@ -45,13 +45,12 @@ describing your tests. `register` adds this to a global list, so they can be
 found by the runner.
 
 Now, let's add a test target to _package.json_ to call the test runner. The
-runner needs to find the compiled `.js` files. By default, it looks in
-`lib/js/tests/**/*.js` - here I have made it explicit:
+runner needs to find the compiled `.js` files.
 
-```Reason
+```json
 "scripts": {
    ...
-   "test": "respect lib/js/tests/**/*.js"
+   "test": "respect"
 }
 ```
 
