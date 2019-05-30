@@ -10,6 +10,7 @@ let wrapTest = (fn: Respect_ctx.t => unit): testFunc =>
     ) {
     | _ => callback(TestFailed)
     };
+
 type doneCallback = Respect_callbacks.doneCallback;
 let wrapW = (fn: (Respect_ctx.t, doneCallback) => unit): testFunc =>
   (ctx: Respect_ctx.t, callback) =>
@@ -115,7 +116,7 @@ module SyncMapper = {
 
 module AsyncMapper = {
   type t('a) = doneCallback => unit;
-  let mapTestfunc = (fn: (Respect_ctx.t) => t('a)): testFunc =>
+  let mapTestfunc = (fn: Respect_ctx.t => t('a)): testFunc =>
     (ctx: Respect_ctx.t, callback) =>
       fn(ctx, (~err=?, ()) =>
         switch (err) {
